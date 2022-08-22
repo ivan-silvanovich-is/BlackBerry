@@ -43,7 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'api',
+
+    'api.apps.ApiConfig',
+    'user.apps.UserConfig',
 ]
 
 MIDDLEWARE = [
@@ -83,10 +85,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('NAME'),
         'HOST': os.getenv('HOST'),
+        'PORT': os.getenv('PORT'),
         'USER': os.getenv('USER'),
         'PASSWORD': os.getenv('PASSWORD'),
-        'NAME': os.getenv('NAME'),
     },
     'sqlite3': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -124,6 +127,10 @@ TIME_ZONE = os.getenv('TIME_ZONE')
 USE_I18N = True
 
 USE_TZ = True
+
+
+# User model
+AUTH_USER_MODEL = 'user.User'
 
 
 # Static files (CSS, JavaScript, Images)

@@ -6,6 +6,7 @@
 *.pyc
 __pycache__
 db.sqlite3
+db.json
 media
 
 # Backup files #
@@ -37,6 +38,7 @@ media
 # Python #
 *.py[cod]
 *$py.class
+source_code.py
 
 # Distribution / packaging
 .Python build/
