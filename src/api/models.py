@@ -169,7 +169,7 @@ class Review(TimeStampMixin):
     text = models.TextField(max_length=1000, verbose_name='Текст')  # the length is fitted
 
     def __str__(self):
-        return f'{self.user.first_name} {self.user.last_name} -> {self.product.title}'
+        return f'{self.user.full_name} -> {self.product.title}'
 
     class Meta:
         verbose_name_plural = 'Отзывы'
