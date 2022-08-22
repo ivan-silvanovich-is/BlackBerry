@@ -3,15 +3,17 @@ from django.contrib import admin
 from .models import *
 
 
+@admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'parent_category')
-    list_display_links = ('name', )
-    search_fields = ('name', )
+    list_display_links = ('name',)
+    search_fields = ('name',)
 
 
+@admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('title', 'category', 'gender', 'is_new', 'manufacturer', 'get_price')
-    list_display_links = ('title', )
+    list_display_links = ('title',)
     search_fields = ('title', 'description', 'manufacturer')
 
     def get_price(self, product_obj):
@@ -20,30 +22,35 @@ class ProductAdmin(admin.ModelAdmin):
     get_price.short_description = 'Цена'
 
 
+@admin.register(ProductDetails)
 class ProductDetailsAdmin(admin.ModelAdmin):
     list_display = ('product', 'product_color', 'product_size', 'stored')
-    list_display_links = ('product', )
-    search_fields = ('product', )
+    list_display_links = ('product',)
+    search_fields = ('product',)
 
 
+@admin.register(Manufacturer)
 class ManufacturerAdmin(admin.ModelAdmin):
     list_display = ('name', 'country', 'address')
-    list_display_links = ('name', )
+    list_display_links = ('name',)
     search_fields = ('name', 'country', 'address')
 
 
+@admin.register(ProductColor)
 class ProductColorAdmin(admin.ModelAdmin):
     list_display = ('color', 'color_hex')
     list_display_links = ('color', 'color_hex')
-    search_fields = ('color', )
+    search_fields = ('color',)
 
 
+@admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
     list_display = ('name', 'product', 'product_color')
-    list_display_links = ('name', )
+    list_display_links = ('name',)
     search_fields = ('name', 'product', 'product_color')
 
 
+@admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ('user', 'product', 'get_rating', 'get_short_text')
     list_display_links = ('user', 'get_short_text')
@@ -59,22 +66,25 @@ class ReviewAdmin(admin.ModelAdmin):
     get_rating.short_description = 'Оценка'
 
 
+@admin.register(Coupon)
 class CouponAdmin(admin.ModelAdmin):
     list_display = ('name', 'discount', 'user', 'valid_until', 'use_limit', 'used_amount')
-    list_display_links = ('name', )
+    list_display_links = ('name',)
     search_fields = ('name', 'user', 'valid_until')
 
 
+@admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('user', 'deliverer', 'point', 'created_at', 'delivery_date', 'address', 'is_sent')
-    list_display_links = ('user', )
+    list_display = ('user', 'deliverer', 'point', 'total_price', 'created_at', 'delivery_date', 'address', 'is_sent')
+    list_display_links = ('user',)
     search_fields = ('user__email', 'deliverer__name', 'point__address', 'address')
 
 
+@admin.register(OrderDetails)
 class OrderDetailsAdmin(admin.ModelAdmin):
     list_display = ('order', 'product_details', 'get_price', 'quantity', 'discount')
     list_display_links = ('order', 'product_details')
-    search_fields = ('product_details__product__title', )
+    search_fields = ('product_details__product__title',)
 
     def get_price(self, product_obj):
         return product_obj.unit_price / 100
@@ -82,6 +92,7 @@ class OrderDetailsAdmin(admin.ModelAdmin):
     get_price.short_description = 'Цена за штуку'
 
 
+@admin.register(Deliverer)
 class DelivererAdmin(admin.ModelAdmin):
     list_display = ('name', 'phone', 'get_price')
     list_display_links = ('name', 'phone')
@@ -93,23 +104,18 @@ class DelivererAdmin(admin.ModelAdmin):
     get_price.short_description = 'Цена доставки'
 
 
+@admin.register(Point)
 class PointAdmin(admin.ModelAdmin):
     list_display = ('address', 'phone', 'location')
-    list_display_links = ('address', )
+    list_display_links = ('address',)
     search_fields = ('address', 'phone', 'location')
 
 
-admin.site.register(Category, CategoryAdmin)
-admin.site.register(Product, ProductAdmin)
-admin.site.register(ProductDetails, ProductDetailsAdmin)
-admin.site.register(Manufacturer, ManufacturerAdmin)
-admin.site.register(ProductColor, ProductColorAdmin)
-admin.site.register(ProductSize)
+@admin.register(ProductMaterialProduct)
+class ProductMaterialProductAdmin(admin.ModelAdmin):
+    list_display = ('product_material', 'product', 'part')
+    list_display_links = ('product_material', 'product')
+    search_fields = ('product_material__name', 'product__title')
+
+
 admin.site.register(ProductMaterial)
-admin.site.register(ProductImage, ProductImageAdmin)
-admin.site.register(Review, ReviewAdmin)
-admin.site.register(Coupon, CouponAdmin)
-admin.site.register(Order, OrderAdmin)
-admin.site.register(OrderDetails, OrderDetailsAdmin)
-admin.site.register(Deliverer, DelivererAdmin)
-admin.site.register(Point, PointAdmin)

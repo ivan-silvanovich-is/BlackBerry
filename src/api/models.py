@@ -1,12 +1,18 @@
 from django.db import models
-from config.models import TimeStampMixin, genders_choices
+from config.models import TimeStampMixin, GENDER_CHOICES
 
 
 class Category(TimeStampMixin):
     name = models.CharField(max_length=50, unique=True, verbose_name='Название')
     logo = models.CharField(max_length=100, unique=True, verbose_name='Лого')
-    parent_category = models.ForeignKey('Category', on_delete=models.PROTECT, null=True, blank=True,
-                                        verbose_name='Родительская категория')
+
+    parent_category = models.ForeignKey(
+        'Category',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name='Родительская категория'
+    )
 
     def __str__(self):
         return self.name
@@ -20,13 +26,14 @@ class Category(TimeStampMixin):
 class Product(TimeStampMixin):
     category = models.ForeignKey('Category', on_delete=models.PROTECT, verbose_name='Категория')
     manufacturer = models.ForeignKey('Manufacturer', on_delete=models.PROTECT, verbose_name='Производитель')
-    gender = models.CharField(max_length=1, choices=genders_choices, verbose_name='Пол')
+    default_color = models.ForeignKey('ProductColor', on_delete=models.PROTECT, verbose_name='Цвет по умолчанию')
+
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, verbose_name='Пол')
     is_new = models.BooleanField(default=True, verbose_name='Новинка')
     title = models.CharField(max_length=100, verbose_name='Название')
     description = models.TextField(verbose_name='Описание')
     price = models.IntegerField(verbose_name='Цена')
     discount = models.IntegerField(default=0, verbose_name='Скидка %')
-    default_color = models.ForeignKey('ProductColor', on_delete=models.PROTECT, verbose_name='Цвет по умолчанию')
 
     def __str__(self):
         return self.title
@@ -47,6 +54,7 @@ class ProductDetails(TimeStampMixin):
     product = models.ForeignKey('Product', on_delete=models.CASCADE, verbose_name='Название товара')
     product_color = models.ForeignKey('ProductColor', on_delete=models.PROTECT, verbose_name='Цвет товара')
     product_size = models.ForeignKey('ProductSize', on_delete=models.PROTECT, verbose_name='Размер товара')
+
     stored = models.IntegerField(default=0, verbose_name='Количество')
 
     def __str__(self):
@@ -78,7 +86,7 @@ class Manufacturer(TimeStampMixin):
 
 
 class ProductSize(models.Model):
-    size = models.CharField(max_length=3, verbose_name='Размер')  # computed
+    size = models.CharField(max_length=3, verbose_name='Размер')  # the length is fitted
 
     def __str__(self):
         return self.size
@@ -91,7 +99,7 @@ class ProductSize(models.Model):
 
 class ProductColor(models.Model):
     color = models.CharField(max_length=20, unique=True, verbose_name='Название')
-    color_hex = models.CharField(max_length=7, verbose_name='Код')  # computed
+    color_hex = models.CharField(max_length=7, verbose_name='Код')  # the length is fitted
 
     def __str__(self):
         return self.color
@@ -104,24 +112,31 @@ class ProductColor(models.Model):
 
 class ProductMaterial(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name='Название')
-    products = models.ManyToManyField('Product', through='productmaterial_product', verbose_name='Товары')
+
+    products = models.ManyToManyField(
+        'Product',
+        through='ProductMaterialProduct',
+        through_fields=('product_material', 'product'),
+        verbose_name='Товары'
+    )
 
     def __str__(self):
         return self.name
 
     class Meta:
-        verbose_name_plural = 'Материалы продуктов'
-        verbose_name = 'Материал продукта'
+        verbose_name_plural = 'Материалы товаров'
+        verbose_name = 'Материал товара'
         ordering = ['name']
 
 
-class productmaterial_product(models.Model):
-    product_material = models.ForeignKey('ProductMaterial', on_delete=models.PROTECT)
-    product = models.ForeignKey('Product', on_delete=models.CASCADE)
-    part = models.IntegerField(default=100)
+class ProductMaterialProduct(models.Model):  # adjacent table for many-to-many relationship (ProductMaterial, Product)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, verbose_name='Товар')
+    product_material = models.ForeignKey('ProductMaterial', on_delete=models.PROTECT, verbose_name='Материал')
+
+    part = models.IntegerField(default=100, verbose_name='Содержание %')
 
     class Meta:
-        unique_together = (('product_material', 'product'),)
+        unique_together = (('product_material', 'product'), )
         constraints = (
             models.CheckConstraint(
                 name='%(app_label)s_%(class)s_part_between_1_and_100',
@@ -131,8 +146,9 @@ class productmaterial_product(models.Model):
 
 
 class ProductImage(TimeStampMixin):
-    product_color = models.ForeignKey('ProductColor', on_delete=models.PROTECT, verbose_name='Цвет')
     product = models.ForeignKey('Product', on_delete=models.CASCADE, verbose_name='товар')
+    product_color = models.ForeignKey('ProductColor', on_delete=models.PROTECT, verbose_name='Цвет')
+
     name = models.CharField(max_length=100, unique=True, verbose_name='Название')
 
     def __str__(self):
@@ -148,8 +164,9 @@ class ProductImage(TimeStampMixin):
 class Review(TimeStampMixin):
     user = models.ForeignKey('user.User', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Пользователь')
     product = models.ForeignKey('Product', on_delete=models.CASCADE, verbose_name='товар')
+
     rating = models.IntegerField(verbose_name='Оценка')
-    text = models.TextField(max_length=1000, verbose_name='Текст')  # computed
+    text = models.TextField(max_length=1000, verbose_name='Текст')  # the length is fitted
 
     def __str__(self):
         return f'{self.user.first_name} {self.user.last_name} -> {self.product.title}'
@@ -169,8 +186,9 @@ class Review(TimeStampMixin):
 
 
 class Coupon(TimeStampMixin):
-    is_valid = models.BooleanField(default=False, verbose_name='Активный')  # Coupon isn't active after creating
     user = models.ForeignKey('user.User', on_delete=models.CASCADE, null=True, blank=True, verbose_name='Пользователь')
+
+    is_active = models.BooleanField(default=False, verbose_name='Активный')  # Coupon isn't active after creating
     name = models.CharField(max_length=20, unique=True, verbose_name='Название')
     discount = models.IntegerField(verbose_name='Скидка %')
     valid_until = models.DateTimeField(verbose_name='Действителен до')
@@ -184,7 +202,7 @@ class Coupon(TimeStampMixin):
     class Meta:
         verbose_name_plural = 'Купоны'
         verbose_name = 'Купон'
-        ordering = ['-is_valid', '-valid_until']
+        ordering = ['-is_active', '-valid_until']
         get_latest_by = '-created_at'
         constraints = (
             models.CheckConstraint(
@@ -204,9 +222,24 @@ class Coupon(TimeStampMixin):
 
 class Order(TimeStampMixin):
     user = models.ForeignKey('user.User', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Пользователь')
-    deliverer = models.ForeignKey('Deliverer', on_delete=models.SET_NULL, null=True, blank=True,
-                                  verbose_name='Доставщик')
     point = models.ForeignKey('Point', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Точка')
+    deliverer = models.ForeignKey(
+        'Deliverer',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Доставщик'
+    )
+
+    @property
+    def total_price(self):
+        price = 0
+        for order_detail in OrderDetails.objects.filter(order=self.pk):
+            price += order_detail.unit_price * order_detail.quantity * (1 - order_detail.discount / 100)
+        return price / 100
+
+    total_price.fget.short_description = 'Сумма заказа'
+
     delivery_date = models.DateTimeField(default=None, null=True, blank=True, verbose_name='Дата доставки')
     delivery_price = models.IntegerField(default=0, verbose_name='Цена доставки')
     address = models.CharField(max_length=255, null=True, blank=True, verbose_name='Адрес')
@@ -237,8 +270,14 @@ class Order(TimeStampMixin):
 
 class OrderDetails(models.Model):
     order = models.ForeignKey('Order', on_delete=models.CASCADE, verbose_name='Заказ')
-    product_details = models.ForeignKey('ProductDetails', on_delete=models.SET_NULL, null=True, blank=True,
-                                        verbose_name='товар')
+    product_details = models.ForeignKey(
+        'ProductDetails',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='товар'
+    )
+
     unit_price = models.IntegerField(verbose_name='Цена за штуку')
     quantity = models.IntegerField(default=1, verbose_name='Количество')
     discount = models.IntegerField(default=0, verbose_name='Скидка %')
@@ -270,7 +309,7 @@ class OrderDetails(models.Model):
 
 class Deliverer(TimeStampMixin):
     name = models.CharField(max_length=50, unique=True, verbose_name='Название')
-    phone = models.CharField(max_length=20, unique=True, verbose_name='Телефон')  # computed, max phone length = 15
+    phone = models.CharField(max_length=15, unique=True, verbose_name='Телефон')  # the length is fitted
     delivery_price = models.IntegerField(verbose_name='Цена доставки')
 
     def __str__(self):
@@ -284,9 +323,9 @@ class Deliverer(TimeStampMixin):
 
 
 class Point(TimeStampMixin):
-    phone = models.CharField(max_length=20, unique=True, verbose_name='Телефон')  # computed, max phone length = 15
+    phone = models.CharField(max_length=15, unique=True, verbose_name='Телефон')  # the length is fitted
     address = models.CharField(max_length=255, verbose_name='Адрес')
-    location = models.CharField(max_length=40, verbose_name='Местоположение')  # computed (with one space)
+    location = models.CharField(max_length=40, verbose_name='Местоположение')  # # the length is fitted (with one space)
 
     def __str__(self):
         return self.address

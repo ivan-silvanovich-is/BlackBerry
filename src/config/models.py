@@ -9,7 +9,7 @@ class TimeStampMixin(models.Model):
         abstract = True
 
 
-genders_choices = (
+GENDER_CHOICES = (
     ('m', 'Мужской'),
     ('f', 'Женский'),
 )
