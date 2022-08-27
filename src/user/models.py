@@ -6,6 +6,7 @@ from config.models import TimeStampMixin, GENDER_CHOICES
 
 class User(AbstractUser):
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, verbose_name='Пол')
+    is_active = models.BooleanField(default=False, verbose_name='Активный')
     first_name = models.CharField(max_length=50, verbose_name='Имя')
     last_name = models.CharField(max_length=50, verbose_name='Фамилия')
     email = models.EmailField(max_length=256, unique=True, verbose_name='Адрес электронной почты')  # the length is fitted

@@ -4,6 +4,7 @@ from config.models import TimeStampMixin, GENDER_CHOICES
 
 class Category(TimeStampMixin):
     name = models.CharField(max_length=50, unique=True, verbose_name='Название')
+    slug = models.SlugField(unique=True)
     logo = models.CharField(max_length=100, unique=True, verbose_name='Лого')
 
     parent_category = models.ForeignKey(
@@ -30,7 +31,8 @@ class Product(TimeStampMixin):
 
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, verbose_name='Пол')
     is_new = models.BooleanField(default=True, verbose_name='Новинка')
-    title = models.CharField(max_length=100, verbose_name='Название')
+    title = models.CharField(max_length=100, unique=True, verbose_name='Название')
+    slug = models.SlugField(unique=True)
     description = models.TextField(verbose_name='Описание')
     price = models.IntegerField(verbose_name='Цена')
     discount = models.IntegerField(default=0, verbose_name='Скидка %')
@@ -70,6 +72,7 @@ class ProductDetails(TimeStampMixin):
 
 class Manufacturer(TimeStampMixin):
     name = models.CharField(max_length=50, unique=True, verbose_name='Название')
+    slug = models.SlugField(unique=True)
     logo = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name='Логотип')
     description = models.CharField(max_length=200, null=True, blank=True, verbose_name='Описание')
     country = models.CharField(max_length=50, verbose_name='Страна')
@@ -86,36 +89,39 @@ class Manufacturer(TimeStampMixin):
 
 
 class ProductSize(models.Model):
-    size = models.CharField(max_length=3, verbose_name='Размер')  # the length is fitted
+    name = models.CharField(max_length=3, unique=True, verbose_name='Размер')  # the length is fitted
 
     def __str__(self):
-        return self.size
+        return self.name
 
     class Meta:
         verbose_name_plural = 'Размеры товаров'
         verbose_name = 'Размер товара'
-        ordering = ['size']
+        ordering = ['name']
 
 
 class ProductColor(models.Model):
-    color = models.CharField(max_length=20, unique=True, verbose_name='Название')
-    color_hex = models.CharField(max_length=7, verbose_name='Код')  # the length is fitted
+    name = models.CharField(max_length=20, unique=True, verbose_name='Название')
+    slug = models.SlugField(unique=True)
+    hex = models.CharField(max_length=7, verbose_name='Код')  # the length is fitted
 
     def __str__(self):
-        return self.color
+        return self.name
 
     class Meta:
         verbose_name_plural = 'Цвета товаров'
         verbose_name = 'Цвет товара'
-        ordering = ['color_hex']
+        ordering = ['hex']
 
 
 class ProductMaterial(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name='Название')
+    slug = models.SlugField(unique=True)
 
     products = models.ManyToManyField(
         'Product',
         through='ProductMaterialProduct',
+        related_name='product_with_material',
         through_fields=('product_material', 'product'),
         verbose_name='Товары'
     )
@@ -146,7 +152,7 @@ class ProductMaterialProduct(models.Model):  # adjacent table for many-to-many r
 
 
 class ProductImage(TimeStampMixin):
-    product = models.ForeignKey('Product', on_delete=models.CASCADE, verbose_name='товар')
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, db_index=True, related_name='images', verbose_name='товар')
     product_color = models.ForeignKey('ProductColor', on_delete=models.PROTECT, verbose_name='Цвет')
 
     name = models.CharField(max_length=100, unique=True, verbose_name='Название')
@@ -155,8 +161,8 @@ class ProductImage(TimeStampMixin):
         return self.name
 
     class Meta:
-        verbose_name_plural = 'Фотографии продуктов'
-        verbose_name = 'Фотография продукта'
+        verbose_name_plural = 'Фотографии товаров'
+        verbose_name = 'Фотография товара'
         ordering = ['-product']
         get_latest_by = '-created_at'
 
@@ -174,7 +180,7 @@ class Review(TimeStampMixin):
     class Meta:
         verbose_name_plural = 'Отзывы'
         verbose_name = 'Отзыв'
-        unique_together = ['user', 'product']
+        unique_together = (('user', 'product'), )
         ordering = ['-product']
         get_latest_by = '-created_at'
         constraints = (
@@ -325,7 +331,7 @@ class Deliverer(TimeStampMixin):
 class Point(TimeStampMixin):
     phone = models.CharField(max_length=15, unique=True, verbose_name='Телефон')  # the length is fitted
     address = models.CharField(max_length=255, verbose_name='Адрес')
-    location = models.CharField(max_length=40, verbose_name='Местоположение')  # # the length is fitted (with one space)
+    location = models.CharField(max_length=22, verbose_name='Местоположение')  # # the length is fitted (without spaces)
 
     def __str__(self):
         return self.address

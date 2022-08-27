@@ -6,7 +6,8 @@
 *.pyc
 __pycache__
 db.sqlite3
-db.json
+*.json
+make_fixtures.py
 media
 
 # Backup files #

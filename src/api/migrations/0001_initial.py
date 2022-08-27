@@ -157,12 +157,12 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('color', models.CharField(max_length=20, unique=True, verbose_name='Название')),
-                ('color_hex', models.CharField(max_length=7, verbose_name='Код')),
+                ('hex', models.CharField(max_length=7, verbose_name='Код')),
             ],
             options={
                 'verbose_name': 'Цвет товара',
                 'verbose_name_plural': 'Цвета товаров',
-                'ordering': ['color_hex'],
+                'ordering': ['hex'],
             },
         ),
         migrations.CreateModel(

@@ -8,13 +8,15 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'parent_category')
     list_display_links = ('name',)
     search_fields = ('name',)
+    prepopulated_fields = {'slug': ('name', )}
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('title', 'category', 'gender', 'is_new', 'manufacturer', 'get_price')
     list_display_links = ('title',)
-    search_fields = ('title', 'description', 'manufacturer')
+    search_fields = ('title', 'description', 'manufacturer__name')
+    prepopulated_fields = {'slug': ('title', )}
 
     def get_price(self, product_obj):
         return product_obj.price / 100
@@ -34,13 +36,20 @@ class ManufacturerAdmin(admin.ModelAdmin):
     list_display = ('name', 'country', 'address')
     list_display_links = ('name',)
     search_fields = ('name', 'country', 'address')
+    prepopulated_fields = {'slug': ('name', )}
 
 
 @admin.register(ProductColor)
 class ProductColorAdmin(admin.ModelAdmin):
-    list_display = ('color', 'color_hex')
-    list_display_links = ('color', 'color_hex')
-    search_fields = ('color',)
+    list_display = ('name', 'hex')
+    list_display_links = ('name', 'hex')
+    search_fields = ('name',)
+    prepopulated_fields = {'slug': ('name', )}
+
+
+@admin.register(ProductMaterial)
+class ProductMaterialAdmin(admin.ModelAdmin):
+    prepopulated_fields = {'slug': ('name', )}
 
 
 @admin.register(ProductImage)
@@ -118,4 +127,4 @@ class ProductMaterialProductAdmin(admin.ModelAdmin):
     search_fields = ('product_material__name', 'product__title')
 
 
-admin.site.register(ProductMaterial)
+admin.site.register(ProductSize)

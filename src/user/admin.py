@@ -5,7 +5,7 @@ from .models import User, UserAddress
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('email', 'phone', 'full_name', 'gender', 'is_staff')
+    list_display = ('email', 'phone', 'full_name', 'gender', 'is_staff', 'is_superuser')
     list_display_links = ('email', 'phone')
     search_fields = ('email', 'phone', 'full_name')
 
