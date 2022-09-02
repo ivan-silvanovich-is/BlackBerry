@@ -1,66 +1,68 @@
 from rest_framework import serializers
+from django.forms.models import model_to_dict
 
 from .models import *
-from user.models import User
+from user.models import User, UserAddress
 
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ("id", "username")
+__all__ = (
+    'CategorySerializer',
+    'ProductItemSerializer',
+    # 'ProductSerializer',
+    'ProductListSerializer',
+    'ManufacturerSerializer',
+    'ProductMaterialSerializer',
+    'ProductMaterialProductSerializer',
+    'ProductColorSerializer',
+    'ProductSizeSerializer',
+    'ProductImageSerializer',
+    'ReviewSerializer',
+    'CouponSerializer',
+    'OrderSerializer',
+    'DelivererSerializer',
+    'PointSerializer',
+    'UserSerializer',
+    'UserAddressSerializer',
+)
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    child_categories = serializers.SerializerMethodField(method_name="get_child_categories")
+
+    def get_child_categories(self, category):
+        if not category.child_categories.exists():
+            return []
+
+        child_categories = []
+        for child_category in category.child_categories.all():
+            category = model_to_dict(child_category, fields=('slug', 'name'))
+            category['child_categories'] = self.get_child_categories(child_category)
+            child_categories.append(category)
+
+        return child_categories
+
     class Meta:
         model = Category
-        fields = ("id", "name")
+        fields = ('slug', 'name', 'child_categories')
+        read_only_fields = fields
 
 
-class ManufacturerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Manufacturer
-        fields = ("id", "name", "logo", "description", "country")
-
-
-class ProductImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductImage
-        fields = ("name", )
-
-
-class ProductColorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductColor
-        fields = "__all__"
-
-
-class ProductReviewSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
-
-    class Meta:
-        model = Review
-        fields = ("created_at", "user", "rating", "text")
-
-
-class ProductListSerializer(serializers.ModelSerializer):
+class ProductListSerializer(serializers.ModelSerializer):  # TODO: find better way to extract images for product
+    category = serializers.SlugRelatedField(slug_field='slug', read_only=True)
     images = serializers.SerializerMethodField(method_name='get_images')
 
     def get_images(self, product):
-        qs = ProductImage.objects.filter(product=product, product_color=product.default_color)
-        serializer = ProductImageSerializer(instance=qs, many=True)
-        return serializer.data
+        return product.images.filter(product_color=product.default_color).values('name')
 
     class Meta:
         model = Product
-        fields = ("id", 'price', 'title', 'discount', 'is_new', 'images')
+        fields = ('slug', 'category', 'price', 'title', 'discount', 'is_new', 'images')
+        read_only_fields = fields
 
 
 class ProductItemSerializer(serializers.ModelSerializer):
-    manufacturer = ManufacturerSerializer()
+    default_color = serializers.SlugRelatedField(slug_field='slug', read_only=True)
     colors = serializers.SerializerMethodField(method_name='get_colors_info')
-    materials = serializers.SerializerMethodField(method_name='get_materials')
-    bread_crumbs = serializers.SerializerMethodField(method_name='get_bread_crumbs')
-    reviews = serializers.SerializerMethodField(method_name='get_reviews')
 
     def get_colors_info(self, product):
         product_variations = ProductDetails.objects.filter(product=product)
@@ -69,7 +71,7 @@ class ProductItemSerializer(serializers.ModelSerializer):
         for color_id in product_variations.values_list('product_color', flat=True).distinct():
             color = ProductColor.objects.get(pk=color_id)
             product_details.append({
-                'id': color.pk,
+                'slug': color.slug,
                 'name': color.name,
                 'hex': color.hex,
                 'sizes': [
@@ -82,31 +84,138 @@ class ProductItemSerializer(serializers.ModelSerializer):
 
         return product_details
 
-    def get_materials(self, product):
-        data = []
-        for obj in ProductMaterialProduct.objects.filter(product=product):
-            data.append({
-                "id": obj.pk,
-                "material": obj.product_material.name,
-                "part": obj.part
-            })
-        return data
-
-    def get_bread_crumbs(self, product):
-        bread_crumbs_list = []
-        category = product.category
-
-        while category:
-            bread_crumbs_list.insert(0, CategorySerializer(category).data)
-            category = category.parent_category
-
-        return bread_crumbs_list
-
-    def get_reviews(self, product):
-        serializer = ProductReviewSerializer(instance=Review.objects.filter(product=product), many=True)
-        return serializer.data
-
     class Meta:
         model = Product
-        fields = ('id', 'manufacturer', 'category', 'bread_crumbs', 'default_color', 'colors', 'is_new', 'gender',
-                  'title', 'description', 'materials', 'price', 'discount', 'reviews')
+        fields = ('slug', 'default_color', 'colors', 'is_new', 'gender', 'title', 'description', 'price', 'discount')
+        read_only_fields = fields
+
+
+class ProductDetailsSerializer(serializers.ModelSerializer):
+    product = serializers.SlugRelatedField(slug_field='slug', read_only=True)
+    color = serializers.SlugRelatedField(source='product_color', slug_field='slug', read_only=True)
+    size = serializers.SlugRelatedField(source='product_size', slug_field='name', read_only=True)
+
+    class Meta:
+        model = ProductDetails
+        fields = ('product', 'color', 'size')
+
+
+class ManufacturerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Manufacturer
+        fields = ("slug", "name", "logo", "description", "country", "address")
+        read_only_fields = fields
+
+
+class ProductMaterialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductMaterial
+        fields = ('name', 'slug')
+        read_only_fields = fields
+
+
+class ProductMaterialProductSerializer(serializers.ModelSerializer):
+    product = serializers.SlugRelatedField(slug_field='slug', read_only=True)
+    material = ProductMaterialSerializer(source="product_material")
+
+    class Meta:
+        model = ProductMaterialProduct
+        fields = ('product', 'material', 'part')
+        read_only_fields = fields
+
+
+class ProductColorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductColor
+        fields = ('slug', 'name', 'hex')
+        read_only_fields = fields
+
+
+class ProductSizeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductSize
+        fields = ('name', )
+
+
+class ProductImageSerializer(serializers.ModelSerializer):
+    product = serializers.SlugRelatedField(slug_field='slug', read_only=True)
+    color = serializers.SlugRelatedField(source='product_color', slug_field='slug', read_only=True)
+
+    class Meta:
+        model = ProductImage
+        fields = ('product', 'color', 'name')
+        read_only_fields = fields
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    username = serializers.SlugRelatedField(source='user', slug_field='username', read_only=True)
+    product = serializers.SlugRelatedField(slug_field='slug', queryset=Product.objects.all(), label='Продукт')
+
+    class Meta:
+        model = Review
+        fields = ('created_at', 'user', 'username', 'product', 'rating', 'text')
+        read_only_fields = ('created_at', 'username')
+
+
+class CouponSerializer(serializers.ModelSerializer):
+    categories = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='slug'
+    )
+
+    class Meta:
+        model = Coupon
+        fields = ('name', 'slug', 'discount', 'valid_until', 'categories')
+        read_only_fields = fields
+
+
+class OrderDetailsSerializer(serializers.ModelSerializer):
+    product_details = ProductDetailsSerializer()
+
+    class Meta:
+        model = OrderDetails
+        fields = ('product_details', 'unit_price', 'quantity', 'discount')
+
+
+class OrderSerializer(serializers.ModelSerializer):  # TODO: add an opportunity to add and update orders
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    order_details = OrderDetailsSerializer(many=True)
+    deliverer = serializers.SlugRelatedField(slug_field='slug', queryset=Deliverer.objects.all(), allow_null=True)
+
+    class Meta:
+        model = Order
+        fields = ('id', 'user', 'point', 'deliverer', 'address', 'delivery_date', 'order_details', 'delivery_price', 'total_price', 'is_sent')
+        read_only_fields = ('id', 'delivery_date', 'delivery_price', 'total_price', 'is_sent')
+
+
+class DelivererSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Deliverer
+        fields = ('name', 'slug', 'delivery_price')
+        read_only_fields = fields
+
+
+class PointSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Point
+        fields = ('phone', 'address', 'location')
+        read_only_fields = fields
+
+
+class UserSerializer(serializers.ModelSerializer):  # TODO: add an opportunity to change user profile info
+    class Meta:
+        model = User
+        fields = ('date_joined', 'username', 'profile_photo', 'country')
+        read_only_fields = fields
+
+
+class UserAddressSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    username = serializers.SlugRelatedField(source='user', slug_field='username', read_only=True)
+
+    class Meta:
+        model = UserAddress
+        fields = ('created_at', 'user', 'username', 'address')
+        read_only_fields = ('created_at', )

@@ -56,14 +56,14 @@ class ProductMaterialAdmin(admin.ModelAdmin):
 class ProductImageAdmin(admin.ModelAdmin):
     list_display = ('name', 'product', 'product_color')
     list_display_links = ('name',)
-    search_fields = ('name', 'product', 'product_color')
+    search_fields = ('name', 'product__title', 'product_color__name')
 
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ('user', 'product', 'get_rating', 'get_short_text')
     list_display_links = ('user', 'get_short_text')
-    search_fields = ('user', 'product', 'text')
+    search_fields = ('user__username', 'product__title', 'text')
 
     def get_short_text(self, review_obj):
         return review_obj.text[:50] + '...'
@@ -77,9 +77,10 @@ class ReviewAdmin(admin.ModelAdmin):
 
 @admin.register(Coupon)
 class CouponAdmin(admin.ModelAdmin):
-    list_display = ('name', 'discount', 'user', 'valid_until', 'use_limit', 'used_amount')
+    list_display = ('name', 'is_active', 'discount', 'user', 'valid_until', 'use_limit', 'used_amount')
     list_display_links = ('name',)
-    search_fields = ('name', 'user', 'valid_until')
+    search_fields = ('name', 'user__username', 'valid_until')
+    prepopulated_fields = {'slug': ('name', )}
 
 
 @admin.register(Order)
@@ -106,6 +107,7 @@ class DelivererAdmin(admin.ModelAdmin):
     list_display = ('name', 'phone', 'get_price')
     list_display_links = ('name', 'phone')
     search_fields = ('name', 'phone')
+    prepopulated_fields = {'slug': ('name', )}
 
     def get_price(self, product_obj):
         return product_obj.delivery_price / 100

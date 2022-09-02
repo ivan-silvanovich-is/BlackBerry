@@ -1,5 +1,29 @@
+from math import ceil
+
 from django.db import models
 from config.models import TimeStampMixin, GENDER_CHOICES
+
+
+__all__ = (
+    'Category',
+    'Product',
+    'ProductDetails',
+    'ProductMaterial',
+    'ProductMaterialProduct',
+    'ProductSize',
+    'ProductColor',
+    'ProductImage',
+    'Manufacturer',
+    'Review',
+    'Coupon',
+    'Order',
+    'OrderDetails',
+    'Deliverer',
+    'Point',
+)
+
+
+# TODO: add automatic database triggers
 
 
 class Category(TimeStampMixin):
@@ -9,6 +33,7 @@ class Category(TimeStampMixin):
 
     parent_category = models.ForeignKey(
         'Category',
+        related_name="child_categories",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
@@ -53,14 +78,19 @@ class Product(TimeStampMixin):
 
 
 class ProductDetails(TimeStampMixin):
-    product = models.ForeignKey('Product', on_delete=models.CASCADE, verbose_name='Название товара')
+    product = models.ForeignKey(
+        'Product',
+        on_delete=models.CASCADE,
+        verbose_name='Название товара',
+        related_name="details"
+    )
     product_color = models.ForeignKey('ProductColor', on_delete=models.PROTECT, verbose_name='Цвет товара')
     product_size = models.ForeignKey('ProductSize', on_delete=models.PROTECT, verbose_name='Размер товара')
 
     stored = models.IntegerField(default=0, verbose_name='Количество')
 
     def __str__(self):
-        return self.product.title
+        return f"{self.product.title} {self.product_color.slug} {self.product_size.name}"
 
     class Meta:
         verbose_name_plural = 'Детали товаров'
@@ -121,7 +151,7 @@ class ProductMaterial(models.Model):
     products = models.ManyToManyField(
         'Product',
         through='ProductMaterialProduct',
-        related_name='product_with_material',
+        related_name='materials',
         through_fields=('product_material', 'product'),
         verbose_name='Товары'
     )
@@ -196,6 +226,7 @@ class Coupon(TimeStampMixin):
 
     is_active = models.BooleanField(default=False, verbose_name='Активный')  # Coupon isn't active after creating
     name = models.CharField(max_length=20, unique=True, verbose_name='Название')
+    slug = models.SlugField(unique=True)
     discount = models.IntegerField(verbose_name='Скидка %')
     valid_until = models.DateTimeField(verbose_name='Действителен до')
     use_limit = models.IntegerField(null=True, blank=True, verbose_name='Лимит использований')
@@ -240,9 +271,9 @@ class Order(TimeStampMixin):
     @property
     def total_price(self):
         price = 0
-        for order_detail in OrderDetails.objects.filter(order=self.pk):
+        for order_detail in self.order_details.all():
             price += order_detail.unit_price * order_detail.quantity * (1 - order_detail.discount / 100)
-        return price / 100
+        return ceil(price)
 
     total_price.fget.short_description = 'Сумма заказа'
 
@@ -275,7 +306,7 @@ class Order(TimeStampMixin):
 
 
 class OrderDetails(models.Model):
-    order = models.ForeignKey('Order', on_delete=models.CASCADE, verbose_name='Заказ')
+    order = models.ForeignKey('Order', related_name='order_details', on_delete=models.CASCADE, verbose_name='Заказ')
     product_details = models.ForeignKey(
         'ProductDetails',
         on_delete=models.SET_NULL,
@@ -315,6 +346,7 @@ class OrderDetails(models.Model):
 
 class Deliverer(TimeStampMixin):
     name = models.CharField(max_length=50, unique=True, verbose_name='Название')
+    slug = models.SlugField(unique=True)
     phone = models.CharField(max_length=15, unique=True, verbose_name='Телефон')  # the length is fitted
     delivery_price = models.IntegerField(verbose_name='Цена доставки')
 
