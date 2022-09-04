@@ -91,13 +91,13 @@ class ProductItemSerializer(serializers.ModelSerializer):
 
 
 class ProductDetailsSerializer(serializers.ModelSerializer):
-    product = serializers.SlugRelatedField(slug_field='slug', read_only=True)
+    slug = serializers.SlugRelatedField(source='product', slug_field='slug', read_only=True)
     color = serializers.SlugRelatedField(source='product_color', slug_field='slug', read_only=True)
     size = serializers.SlugRelatedField(source='product_size', slug_field='name', read_only=True)
 
     class Meta:
         model = ProductDetails
-        fields = ('product', 'color', 'size')
+        fields = ('slug', 'color', 'size')
 
 
 class ManufacturerSerializer(serializers.ModelSerializer):
@@ -172,11 +172,11 @@ class CouponSerializer(serializers.ModelSerializer):
 
 
 class OrderDetailsSerializer(serializers.ModelSerializer):
-    product_details = ProductDetailsSerializer()
+    product = ProductDetailsSerializer(source='product_details')
 
     class Meta:
         model = OrderDetails
-        fields = ('product_details', 'unit_price', 'quantity', 'discount')
+        fields = ('product', 'unit_price', 'quantity', 'discount')
 
 
 class OrderSerializer(serializers.ModelSerializer):  # TODO: add an opportunity to add and update orders

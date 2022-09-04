@@ -193,7 +193,7 @@ class ProductImage(TimeStampMixin):
     class Meta:
         verbose_name_plural = 'Фотографии товаров'
         verbose_name = 'Фотография товара'
-        ordering = ['-product']
+        ordering = ['-product', 'product_color']
         get_latest_by = '-created_at'
 
 
@@ -211,7 +211,7 @@ class Review(TimeStampMixin):
         verbose_name_plural = 'Отзывы'
         verbose_name = 'Отзыв'
         unique_together = (('user', 'product'), )
-        ordering = ['-product']
+        ordering = ['-product', '-created_at']
         get_latest_by = '-created_at'
         constraints = (
             models.CheckConstraint(

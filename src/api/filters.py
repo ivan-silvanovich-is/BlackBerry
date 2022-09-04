@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django_filters import rest_framework as filters
 
 from config.models import GENDER_CHOICES
@@ -54,18 +55,38 @@ class ProductFilter(filters.FilterSet):
         queryset=ProductSize.objects.all()
     )
 
+    search = filters.CharFilter(method='get_found_products', label='Поиск')
+
+    def get_found_products(self, queryset, name, value):
+        return queryset.filter(Q(title__icontains=value) | Q(description__icontains=value))
+
+    order = filters.OrderingFilter(
+        fields=(
+            ('price', 'price'),
+            ('created_at', 'date'),
+            ('is_new', 'new'),
+            ('discount', 'discount'),
+            # ('reviews', 'reviews'),  # TODO: add option to filter by reviews (by count, by average mark)
+        ),
+        field_labels={
+            'price': 'Цена',
+            'created_at': 'Дата',
+            'is_new': 'Новизна',
+            'discount': 'Скидка',
+        }
+    )
+
     class Meta:
         model = Product
-        fields = ('price', 'manufacturer', 'category', 'gender', 'material', 'color', 'size')
+        fields = ('search', 'price', 'manufacturer', 'category', 'gender', 'material', 'color', 'size')
 
 
 class ManufacturerFilter(filters.FilterSet):
-    manufacturer = filters.AllValuesMultipleFilter(field_name="slug", label="Производитель")
     country = filters.AllValuesMultipleFilter(field_name="country", label="Страна")
 
     class Meta:
         model = Manufacturer
-        fields = ('manufacturer', 'country')
+        fields = ('country', )
 
 
 class ProductMaterialFilter(filters.FilterSet):
