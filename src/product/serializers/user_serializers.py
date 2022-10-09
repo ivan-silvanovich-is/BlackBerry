@@ -9,11 +9,11 @@ __all__ = (
     'ProductListSerializer',
     'ProductItemSerializer',
     'ManufacturerSerializer',
-    'ProductMaterialSerializer',
-    'ProductMaterialProductSerializer',
-    'ProductColorSerializer',
-    'ProductSizeSerializer',
-    'ProductImageSerializer',
+    'MaterialSerializer',
+    'MaterialProductSerializer',
+    'ColorSerializer',
+    'SizeSerializer',
+    'ImageSerializer',
     'ReviewSerializer',
     'CouponSerializer',
 )
@@ -62,7 +62,7 @@ class ProductItemSerializer(serializers.ModelSerializer):
         product_details = []
 
         for color_id in product_variations.values_list('product_color', flat=True).distinct():
-            color_info = model_to_dict(ProductColor.objects.get(pk=color_id))
+            color_info = model_to_dict(Color.objects.get(pk=color_id))
             color_info['sizes'] = [
                 {
                     'size': obj.product_size.name,
@@ -97,42 +97,42 @@ class ManufacturerSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class ProductMaterialSerializer(serializers.ModelSerializer):
+class MaterialSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ProductMaterial
+        model = Material
         fields = ('name', 'slug')
         read_only_fields = fields
 
 
-class ProductMaterialProductSerializer(serializers.ModelSerializer):
+class MaterialProductSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(slug_field='slug', read_only=True)
-    material = ProductMaterialSerializer(source="product_material")
+    material = MaterialSerializer(source="product_material")
 
     class Meta:
-        model = ProductMaterialProduct
+        model = MaterialProduct
         fields = ('product', 'material', 'part')
         read_only_fields = fields
 
 
-class ProductColorSerializer(serializers.ModelSerializer):
+class ColorSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ProductColor
+        model = Color
         fields = ('slug', 'name', 'hex')
         read_only_fields = fields
 
 
-class ProductSizeSerializer(serializers.ModelSerializer):
+class SizeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ProductSize
+        model = Size
         fields = ('name', )
 
 
-class ProductImageSerializer(serializers.ModelSerializer):
+class ImageSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(slug_field='slug', read_only=True)
     color = serializers.SlugRelatedField(source='product_color', slug_field='slug', read_only=True)
 
     class Meta:
-        model = ProductImage
+        model = Image
         fields = ('product', 'color', 'name')
         read_only_fields = fields
 

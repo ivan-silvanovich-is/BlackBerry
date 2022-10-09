@@ -14,10 +14,10 @@ __all__ = (
     'CategoryViewSet',
     'ProductViewSet',
     'ManufacturerViewSet',
-    'ProductMaterialViewSet',
-    'ProductColorViewSet',
-    'ProductSizeViewSet',
-    'ProductImageViewSet',
+    'MaterialViewSet',
+    'ColorViewSet',
+    'SizeViewSet',
+    'ImageViewSet',
     'ReviewViewSet',
     'CouponViewSet',
 )
@@ -62,10 +62,10 @@ class ManufacturerViewSet(ReadOnlyModelViewSet):
     lookup_field = "slug"
 
 
-class ProductMaterialViewSet(ReadOnlyModelViewSet):
-    queryset = ProductMaterialProduct.objects.all()
-    serializer_class = ProductMaterialProductSerializer
-    filterset_class = ProductMaterialFilter
+class MaterialViewSet(ReadOnlyModelViewSet):
+    queryset = MaterialProduct.objects.all()
+    serializer_class = MaterialProductSerializer
+    filterset_class = MaterialFilter
     lookup_field = "slug"
 
     def list(self, request, *args, **kwargs):
@@ -74,29 +74,29 @@ class ProductMaterialViewSet(ReadOnlyModelViewSet):
             serializer = self.serializer_class(filtered_qs, many=True)
             return Response(serializer.data)
 
-        return Response(ProductMaterialSerializer(instance=ProductMaterial.objects.all(), many=True).data)
+        return Response(MaterialSerializer(instance=Material.objects.all(), many=True).data)
 
     def retrieve(self, request, *args, **kwargs):
-        material = get_object_or_404(ProductMaterial, slug=kwargs['slug'])
-        return Response(ProductMaterialSerializer(instance=material).data)
+        material = get_object_or_404(Material, slug=kwargs['slug'])
+        return Response(MaterialSerializer(instance=material).data)
 
 
-class ProductColorViewSet(ReadOnlyModelViewSet):
-    queryset = ProductColor.objects.all()
-    serializer_class = ProductColorSerializer
+class ColorViewSet(ReadOnlyModelViewSet):
+    queryset = Color.objects.all()
+    serializer_class = ColorSerializer
     lookup_field = 'slug'
 
 
-class ProductSizeViewSet(ReadOnlyModelViewSet):
-    queryset = ProductSize.objects.all()
-    serializer_class = ProductSizeSerializer
+class SizeViewSet(ReadOnlyModelViewSet):
+    queryset = Size.objects.all()
+    serializer_class = SizeSerializer
     lookup_field = 'name'
 
 
-class ProductImageViewSet(ReadOnlyModelViewSet):
-    queryset = ProductImage.objects.all()
-    serializer_class = ProductImageSerializer
-    filterset_class = ProductImageFilter
+class ImageViewSet(ReadOnlyModelViewSet):
+    queryset = Image.objects.all()
+    serializer_class = ImageSerializer
+    filterset_class = ImageFilter
 
 
 class ReviewViewSet(ModelViewSet):

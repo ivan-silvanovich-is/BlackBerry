@@ -7,11 +7,11 @@ __all__ = (
     'Category',
     'Product',
     'ProductDetails',
-    'ProductMaterial',
-    'ProductMaterialProduct',
-    'ProductSize',
-    'ProductColor',
-    'ProductImage',
+    'Material',
+    'MaterialProduct',
+    'Size',
+    'Color',
+    'Image',
     'Manufacturer',
     'Review',
     'Coupon',
@@ -47,7 +47,7 @@ class Category(TimeStampMixin):
 class Product(TimeStampMixin):
     category = models.ForeignKey('Category', on_delete=models.PROTECT, verbose_name='Категория')
     manufacturer = models.ForeignKey('Manufacturer', on_delete=models.PROTECT, verbose_name='Производитель')
-    default_color = models.ForeignKey('ProductColor', on_delete=models.PROTECT, verbose_name='Цвет по умолчанию')
+    default_color = models.ForeignKey('Color', on_delete=models.PROTECT, verbose_name='Цвет по умолчанию')
 
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, verbose_name='Пол')
     is_new = models.BooleanField(default=True, verbose_name='Новинка')
@@ -79,8 +79,8 @@ class ProductDetails(TimeStampMixin):
         verbose_name='Название товара',
         related_name="details"
     )
-    product_color = models.ForeignKey('ProductColor', on_delete=models.PROTECT, verbose_name='Цвет товара')
-    product_size = models.ForeignKey('ProductSize', on_delete=models.PROTECT, verbose_name='Размер товара')
+    product_color = models.ForeignKey('Color', on_delete=models.PROTECT, verbose_name='Цвет товара')
+    product_size = models.ForeignKey('Size', on_delete=models.PROTECT, verbose_name='Размер товара')
 
     quantity = models.IntegerField(default=0, verbose_name='Количество')
 
@@ -113,7 +113,7 @@ class Manufacturer(TimeStampMixin):
         get_latest_by = '-created_at'
 
 
-class ProductSize(models.Model):
+class Size(models.Model):
     name = models.CharField(max_length=3, unique=True, verbose_name='Размер')  # the length is fitted
 
     def __str__(self):
@@ -125,7 +125,7 @@ class ProductSize(models.Model):
         ordering = ['name']
 
 
-class ProductColor(models.Model):
+class Color(models.Model):
     name = models.CharField(max_length=20, unique=True, verbose_name='Название')
     slug = models.SlugField(unique=True, verbose_name='Слаг')
     hex = models.CharField(max_length=7, verbose_name='Код')  # the length is fitted
@@ -139,13 +139,13 @@ class ProductColor(models.Model):
         ordering = ['hex']
 
 
-class ProductMaterial(models.Model):
+class Material(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name='Название')
     slug = models.SlugField(unique=True, verbose_name='Слаг')
 
     products = models.ManyToManyField(
         'Product',
-        through='ProductMaterialProduct',
+        through='MaterialProduct',
         related_name='materials',
         through_fields=('product_material', 'product'),
         verbose_name='Товары'
@@ -160,9 +160,9 @@ class ProductMaterial(models.Model):
         ordering = ['name']
 
 
-class ProductMaterialProduct(models.Model):  # adjacent table for many-to-many relationship (ProductMaterial, Product)
+class MaterialProduct(models.Model):  # adjacent table for many-to-many relationship (Material, Product)
     product = models.ForeignKey('Product', on_delete=models.CASCADE, verbose_name='Товар')
-    product_material = models.ForeignKey('ProductMaterial', on_delete=models.PROTECT, verbose_name='Материал')
+    product_material = models.ForeignKey('Material', on_delete=models.PROTECT, verbose_name='Материал')
 
     part = models.IntegerField(default=100, verbose_name='Содержание %')
 
@@ -176,7 +176,7 @@ class ProductMaterialProduct(models.Model):  # adjacent table for many-to-many r
         )
 
 
-class ProductImage(TimeStampMixin):
+class Image(TimeStampMixin):
     product = models.ForeignKey(
         'Product',
         on_delete=models.CASCADE,
@@ -184,7 +184,7 @@ class ProductImage(TimeStampMixin):
         related_name='images',
         verbose_name='товар',
     )
-    product_color = models.ForeignKey('ProductColor', on_delete=models.PROTECT, verbose_name='Цвет')
+    product_color = models.ForeignKey('Color', on_delete=models.PROTECT, verbose_name='Цвет')
 
     name = models.CharField(max_length=100, unique=True, verbose_name='Название')
 
