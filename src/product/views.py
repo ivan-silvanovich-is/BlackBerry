@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
-from config.permissions import IsOwner, IsOwnerOrReadOnly, IsStaffOrReadOnly
+from config.permissions import IsOwnerOrReadOnly, IsStaffOrReadOnly
 from .filters import *
 from .models import *
 from .serializers.staff_serializers import *
@@ -20,9 +20,6 @@ __all__ = (
     'ProductImageViewSet',
     'ReviewViewSet',
     'CouponViewSet',
-    'OrderViewSet',
-    'DelivererViewSet',
-    'PointViewSet',
 )
 
 
@@ -127,26 +124,3 @@ class CouponViewSet(ReadOnlyModelViewSet):
             return self.queryset.filter(Q(user=self.request.user.id) | Q(user=None))
         else:
             return self.queryset
-
-
-class OrderViewSet(ModelViewSet):
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
-    permission_classes = (IsAuthenticated, IsOwner)
-
-    def get_queryset(self):
-        if self.action == 'list':
-            return self.queryset.filter(user=self.request.user.id)
-        else:
-            return self.queryset
-
-
-class DelivererViewSet(ReadOnlyModelViewSet):
-    queryset = Deliverer.objects.all()
-    serializer_class = DelivererSerializer
-    lookup_field = 'slug'
-
-
-class PointViewSet(ReadOnlyModelViewSet):
-    queryset = Point.objects.all()
-    serializer_class = PointSerializer
