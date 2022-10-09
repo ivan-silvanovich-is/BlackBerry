@@ -9,11 +9,20 @@ from .models import *
 __all__ = (
     'CategoryFilter',
     'ProductFilter',
+    'StaffProductFilter',
     'ProductMaterialFilter',
     'ManufacturerFilter',
     'ProductImageFilter',
     'ReviewFilter',
 )
+
+
+class TimeStampFilter(filters.FilterSet):
+    created_at = filters.DateFromToRangeFilter()
+    updated_at = filters.DateFromToRangeFilter()
+
+    class Meta:
+        fields = ('created_at', 'updated_at')
 
 
 class CategoryFilter(filters.FilterSet):
@@ -79,6 +88,10 @@ class ProductFilter(filters.FilterSet):
     class Meta:
         model = Product
         fields = ('search', 'price', 'manufacturer', 'category', 'gender', 'material', 'color', 'size')
+
+
+class StaffProductFilter(ProductFilter, TimeStampFilter):
+    pass
 
 
 class ManufacturerFilter(filters.FilterSet):

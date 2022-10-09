@@ -12,6 +12,6 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(UserAddress)
 class UserAddressAdmin(admin.ModelAdmin):
-    list_display = ('address', 'user')
-    list_display_links = ('address', )
-    search_fields = ('address', 'user__email')
+    list_display = ('country', 'region', 'city', 'street', 'house', 'apartment', 'user')
+    list_display_links = ('country', 'region', 'city', 'street', 'house', 'apartment')
+    search_fields = ('country', 'region', 'city', 'street', 'house', 'apartment', 'user__email')

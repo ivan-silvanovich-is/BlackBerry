@@ -1,95 +1,5 @@
 [
   {
-    "model": "user.useraddress",
-    "pk": 1,
-    "fields": {
-      "created_at": "2021-11-18T10:30:35Z",
-      "updated_at": "2021-12-22T23:13:17Z",
-      "user_id": 1,
-      "address": "Адресс пользователя 1(1)"
-    }
-  },
-  {
-    "model": "user.useraddress",
-    "pk": 2,
-    "fields": {
-      "created_at": "2022-02-04T02:35:25Z",
-      "updated_at": "2022-07-26T13:43:13Z",
-      "user_id": 1,
-      "address": "Адресс пользователя 1(2)"
-    }
-  },
-  {
-    "model": "user.useraddress",
-    "pk": 3,
-    "fields": {
-      "created_at": "2021-10-15T00:33:10Z",
-      "updated_at": "2021-10-15T00:33:10Z",
-      "user_id": 1,
-      "address": "Адресс пользователя 1(3)"
-    }
-  },
-  {
-    "model": "user.useraddress",
-    "pk": 4,
-    "fields": {
-      "created_at": "2021-12-18T23:27:01Z",
-      "updated_at": "2021-12-18T23:27:01Z",
-      "user_id": 2,
-      "address": "Адресс пользователя 2(1)"
-    }
-  },
-  {
-    "model": "user.useraddress",
-    "pk": 5,
-    "fields": {
-      "created_at": "2022-08-24T01:51:21Z",
-      "updated_at": "2022-08-24T01:51:21Z",
-      "user_id": 2,
-      "address": "Адресс пользователя 2(2)"
-    }
-  },
-  {
-    "model": "user.useraddress",
-    "pk": 6,
-    "fields": {
-      "created_at": "2021-09-04T05:14:30Z",
-      "updated_at": "2022-04-11T18:24:03Z",
-      "user_id": 2,
-      "address": "Адресс пользователя 2(3)"
-    }
-  },
-  {
-    "model": "user.useraddress",
-    "pk": 7,
-    "fields": {
-      "created_at": "2022-03-25T18:19:25Z",
-      "updated_at": "2022-03-25T18:19:25Z",
-      "user_id": 3,
-      "address": "Адресс пользователя 3(1)"
-    }
-  },
-  {
-    "model": "user.useraddress",
-    "pk": 8,
-    "fields": {
-      "created_at": "2021-12-28T03:19:40Z",
-      "updated_at": "2021-12-28T03:19:40Z",
-      "user_id": 3,
-      "address": "Адресс пользователя 3(2)"
-    }
-  },
-  {
-    "model": "user.useraddress",
-    "pk": 9,
-    "fields": {
-      "created_at": "2022-06-30T22:45:06Z",
-      "updated_at": "2022-07-28T19:15:58Z",
-      "user_id": 3,
-      "address": "Адресс пользователя 3(3)"
-    }
-  },
-  {
     "model": "user.user",
     "pk": 1,
     "fields": {
@@ -105,7 +15,7 @@
       "first_name": "admin",
       "last_name": "admin",
       "email": "admin@gmail.com",
-      "country": "Беларусь",
+      "country": "Belarus",
       "phone": null,
       "groups": [],
       "user_permissions": []
@@ -127,7 +37,7 @@
       "first_name": "staff",
       "last_name": "staff",
       "email": "staff@gmail.com",
-      "country": "Россия",
+      "country": "Russia",
       "phone": null,
       "groups": [],
       "user_permissions": []
@@ -149,10 +59,170 @@
       "first_name": "user",
       "last_name": "user",
       "email": "user@gmail.com",
-      "country": "Мадагаскар",
+      "country": "Madagascar",
       "phone": null,
       "groups": [],
       "user_permissions": []
+    }
+  },
+  {
+    "model": "user.useraddress",
+    "pk": 1,
+    "fields": {
+      "created_at": "2021-11-16T12:38:21Z",
+      "updated_at": "2022-08-04T20:15:14Z",
+      "user_id": 2,
+      "country": "Germany",
+      "region": "Nordrhein-Westfalen",
+      "city": "Münster",
+      "street": "Maywood",
+      "house": "09",
+      "apartment": null,
+      "location": "73.113377,168.103018"
+    }
+  },
+  {
+    "model": "user.useraddress",
+    "pk": 2,
+    "fields": {
+      "created_at": "2022-06-06T08:41:11Z",
+      "updated_at": "2022-06-06T08:41:11Z",
+      "user_id": 3,
+      "country": "Thailand",
+      "region": null,
+      "city": "Song",
+      "street": "Golf View",
+      "house": "635",
+      "apartment": "92",
+      "location": "-53.203888,-43.583223"
+    }
+  },
+  {
+    "model": "user.useraddress",
+    "pk": 3,
+    "fields": {
+      "created_at": "2021-09-12T20:18:42Z",
+      "updated_at": "2022-02-23T05:43:35Z",
+      "user_id": 3,
+      "country": "Norway",
+      "region": "Oslo",
+      "city": "Oslo",
+      "street": "Ramsey",
+      "house": "8962",
+      "apartment": null,
+      "location": "-42.660696,162.570180"
+    }
+  },
+  {
+    "model": "user.useraddress",
+    "pk": 4,
+    "fields": {
+      "created_at": "2022-05-19T12:40:53Z",
+      "updated_at": "2022-07-13T23:11:21Z",
+      "user_id": 1,
+      "country": "Costa Rica",
+      "region": null,
+      "city": "La Fortuna",
+      "street": "Eastwood",
+      "house": "0",
+      "apartment": "92",
+      "location": "3.404684,-50.056581"
+    }
+  },
+  {
+    "model": "user.useraddress",
+    "pk": 5,
+    "fields": {
+      "created_at": "2022-01-05T04:50:28Z",
+      "updated_at": "2022-01-05T04:50:28Z",
+      "user_id": 2,
+      "country": "Indonesia",
+      "region": null,
+      "city": "Sai",
+      "street": "Dapin",
+      "house": "07",
+      "apartment": "12",
+      "location": "31.672176,117.491778"
+    }
+  },
+  {
+    "model": "user.useraddress",
+    "pk": 6,
+    "fields": {
+      "created_at": "2021-12-16T04:57:25Z",
+      "updated_at": "2021-12-16T04:57:25Z",
+      "user_id": 3,
+      "country": "Vietnam",
+      "region": null,
+      "city": "Uyen Hung",
+      "street": "Sunbrook",
+      "house": "13238",
+      "apartment": null,
+      "location": "14.350100,133.988940"
+    }
+  },
+  {
+    "model": "user.useraddress",
+    "pk": 7,
+    "fields": {
+      "created_at": "2022-01-05T15:46:55Z",
+      "updated_at": "2022-03-31T15:47:33Z",
+      "user_id": 3,
+      "country": "Indonesia",
+      "region": null,
+      "city": "Citasuk",
+      "street": "Mcguire",
+      "house": "5972",
+      "apartment": null,
+      "location": "-12.529788,-120.805444"
+    }
+  },
+  {
+    "model": "user.useraddress",
+    "pk": 8,
+    "fields": {
+      "created_at": "2021-11-11T08:20:24Z",
+      "updated_at": "2022-05-26T06:06:27Z",
+      "user_id": 2,
+      "country": "China",
+      "region": null,
+      "city": "Shanguang",
+      "street": "Butternut",
+      "house": "2138",
+      "apartment": "02",
+      "location": "73.642957,-101.209880"
+    }
+  },
+  {
+    "model": "user.useraddress",
+    "pk": 9,
+    "fields": {
+      "created_at": "2022-02-12T07:01:48Z",
+      "updated_at": "2022-03-29T01:58:54Z",
+      "user_id": 3,
+      "country": "China",
+      "region": null,
+      "city": "Longtou",
+      "street": "Moland",
+      "house": "2",
+      "apartment": "52",
+      "location": "-88.206995,179.130854"
+    }
+  },
+  {
+    "model": "user.useraddress",
+    "pk": 10,
+    "fields": {
+      "created_at": "2022-05-05T02:08:03Z",
+      "updated_at": "2022-05-05T02:08:03Z",
+      "user_id": 1,
+      "country": "Russia",
+      "region": null,
+      "city": "Torzhok",
+      "street": "Valley Edge",
+      "house": "37951",
+      "apartment": "32",
+      "location": "-75.605160,-174.642617"
     }
   }
 ]
