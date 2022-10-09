@@ -39,21 +39,21 @@ class ManufacturerAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name', )}
 
 
-@admin.register(ProductColor)
-class ProductColorAdmin(admin.ModelAdmin):
+@admin.register(Color)
+class ColorAdmin(admin.ModelAdmin):
     list_display = ('name', 'hex')
     list_display_links = ('name', 'hex')
     search_fields = ('name',)
     prepopulated_fields = {'slug': ('name', )}
 
 
-@admin.register(ProductMaterial)
-class ProductMaterialAdmin(admin.ModelAdmin):
+@admin.register(Material)
+class MaterialAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name', )}
 
 
-@admin.register(ProductImage)
-class ProductImageAdmin(admin.ModelAdmin):
+@admin.register(Image)
+class ImageAdmin(admin.ModelAdmin):
     list_display = ('name', 'product', 'product_color')
     list_display_links = ('name',)
     search_fields = ('name', 'product__title', 'product_color__name')
@@ -83,50 +83,11 @@ class CouponAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name', )}
 
 
-@admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
-    list_display = ('user', 'deliverer', 'point', 'total_price', 'created_at', 'delivery_date', 'user_address', 'is_sent')
-    list_display_links = ('user',)
-    search_fields = ('user__email', 'deliverer__name', 'point__address', 'user_address')
-
-
-@admin.register(OrderDetails)
-class OrderDetailsAdmin(admin.ModelAdmin):
-    list_display = ('order', 'product_details', 'get_price', 'quantity', 'discount')
-    list_display_links = ('order', 'product_details')
-    search_fields = ('product_details__product__title',)
-
-    def get_price(self, product_obj):
-        return product_obj.unit_price / 100
-
-    get_price.short_description = 'Цена за штуку'
-
-
-@admin.register(Deliverer)
-class DelivererAdmin(admin.ModelAdmin):
-    list_display = ('name', 'phone', 'get_price')
-    list_display_links = ('name', 'phone')
-    search_fields = ('name', 'phone')
-    prepopulated_fields = {'slug': ('name', )}
-
-    def get_price(self, product_obj):
-        return product_obj.delivery_price / 100
-
-    get_price.short_description = 'Цена доставки'
-
-
-@admin.register(Point)
-class PointAdmin(admin.ModelAdmin):
-    list_display = ('address', 'phone', 'location')
-    list_display_links = ('address',)
-    search_fields = ('address', 'phone', 'location')
-
-
-@admin.register(ProductMaterialProduct)
-class ProductMaterialProductAdmin(admin.ModelAdmin):
+@admin.register(MaterialProduct)
+class MaterialProductAdmin(admin.ModelAdmin):
     list_display = ('product_material', 'product', 'part')
     list_display_links = ('product_material', 'product')
     search_fields = ('product_material__name', 'product__title')
 
 
-admin.site.register(ProductSize)
+admin.site.register(Size)

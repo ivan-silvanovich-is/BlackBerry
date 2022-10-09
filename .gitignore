@@ -6,7 +6,7 @@
 *.pyc
 __pycache__
 db.sqlite3
-*.json
+data
 make_fixtures.py
 media
 

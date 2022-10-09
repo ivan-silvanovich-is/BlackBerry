@@ -10,9 +10,9 @@ __all__ = (
     'CategoryFilter',
     'ProductFilter',
     'StaffProductFilter',
-    'ProductMaterialFilter',
+    'MaterialFilter',
     'ManufacturerFilter',
-    'ProductImageFilter',
+    'ImageFilter',
     'ReviewFilter',
 )
 
@@ -51,17 +51,17 @@ class ProductFilter(filters.FilterSet):
     material = filters.ModelMultipleChoiceFilter(
         field_name="materials__slug",
         to_field_name="slug",
-        queryset=ProductMaterial.objects.all()
+        queryset=Material.objects.all()
     )
     color = filters.ModelMultipleChoiceFilter(
         field_name="details__product_color__slug",
         to_field_name="slug",
-        queryset=ProductColor.objects.all()
+        queryset=Color.objects.all()
     )
     size = filters.ModelMultipleChoiceFilter(
         field_name="details__product_size__name",
         to_field_name="name",
-        queryset=ProductSize.objects.all()
+        queryset=Size.objects.all()
     )
 
     search = filters.CharFilter(method='get_found_products', label='Поиск')
@@ -102,11 +102,11 @@ class ManufacturerFilter(filters.FilterSet):
         fields = ('country', )
 
 
-class ProductMaterialFilter(filters.FilterSet):
+class MaterialFilter(filters.FilterSet):
     material = filters.ModelMultipleChoiceFilter(
         field_name="product_material__slug",
         to_field_name="slug",
-        queryset=ProductMaterial.objects.all()
+        queryset=Material.objects.all()
     )
     product = filters.ModelMultipleChoiceFilter(
         field_name="product__slug",
@@ -116,11 +116,11 @@ class ProductMaterialFilter(filters.FilterSet):
     part = filters.RangeFilter(field_name="part")
 
     class Meta:
-        model = ProductMaterialProduct
+        model = MaterialProduct
         fields = ("material", "product", "part")
 
 
-class ProductImageFilter(filters.FilterSet):
+class ImageFilter(filters.FilterSet):
     product = filters.ModelMultipleChoiceFilter(
         field_name='product__slug',
         to_field_name='slug',
@@ -129,11 +129,11 @@ class ProductImageFilter(filters.FilterSet):
     color = filters.ModelMultipleChoiceFilter(
         field_name='product_color__slug',
         to_field_name='slug',
-        queryset=ProductColor.objects.all()
+        queryset=Color.objects.all()
     )
 
     class Meta:
-        model = ProductImage
+        model = Image
         fields = ('product', 'color')
 
 

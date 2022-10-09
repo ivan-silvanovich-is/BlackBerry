@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'django_filters',
     'djoser',
 
-    'api.apps.ApiConfig',
+    'order.apps.OrderConfig',
+    'product.apps.ProductConfig',
     'user.apps.UserConfig',
 ]
 

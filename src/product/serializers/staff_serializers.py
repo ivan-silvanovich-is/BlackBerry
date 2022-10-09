@@ -20,14 +20,14 @@ class StaffProductListSerializer(ProductListSerializer):
 class StaffProductItemSerializer(ProductItemSerializer):
     category = serializers.SlugRelatedField(slug_field='slug', queryset=Category.objects.all())
     manufacturer = serializers.SlugRelatedField(slug_field='slug', queryset=Manufacturer.objects.all())
-    default_color = serializers.SlugRelatedField(slug_field='slug', queryset=ProductColor.objects.all())
+    default_color = serializers.SlugRelatedField(slug_field='slug', queryset=Color.objects.all())
 
     def get_colors_info(self, product):
         product_variations = ProductDetails.objects.filter(product=product)
         product_details = []
 
         for color_id in product_variations.values_list('product_color', flat=True).distinct():
-            color_info = model_to_dict(ProductColor.objects.get(pk=color_id))
+            color_info = model_to_dict(Color.objects.get(pk=color_id))
             color_info['sizes'] = [
                 {
                     'size': obj.product_size.name,
