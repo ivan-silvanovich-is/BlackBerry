@@ -1,15 +1,13 @@
-from rest_framework import serializers
 from django.forms.models import model_to_dict
+from rest_framework import serializers
 
-from .models import *
-from user.models import User, UserAddress
-
+from ..models import *
 
 __all__ = (
     'CategorySerializer',
-    'ProductItemSerializer',
     # 'ProductSerializer',
     'ProductListSerializer',
+    'ProductItemSerializer',
     'ManufacturerSerializer',
     'ProductMaterialSerializer',
     'ProductMaterialProductSerializer',
@@ -21,8 +19,6 @@ __all__ = (
     'OrderSerializer',
     'DelivererSerializer',
     'PointSerializer',
-    'UserSerializer',
-    'UserAddressSerializer',
 )
 
 
@@ -69,18 +65,15 @@ class ProductItemSerializer(serializers.ModelSerializer):
         product_details = []
 
         for color_id in product_variations.values_list('product_color', flat=True).distinct():
-            color = ProductColor.objects.get(pk=color_id)
-            product_details.append({
-                'slug': color.slug,
-                'name': color.name,
-                'hex': color.hex,
-                'sizes': [
-                    {
-                        'size': obj.product_size.name,
-                        'is_stored': bool(obj.stored),
-                    } for obj in product_variations.filter(product_color=color)
-                ]
-            })
+            color_info = model_to_dict(ProductColor.objects.get(pk=color_id))
+            color_info['sizes'] = [
+                {
+                    'size': obj.product_size.name,
+                    'is_stored': bool(obj.quantity),
+                } for obj in product_variations.filter(product_color_id=color_id)
+            ]
+
+            product_details.append(color_info)
 
         return product_details
 
@@ -91,13 +84,13 @@ class ProductItemSerializer(serializers.ModelSerializer):
 
 
 class ProductDetailsSerializer(serializers.ModelSerializer):
-    product = serializers.SlugRelatedField(slug_field='slug', read_only=True)
+    slug = serializers.SlugRelatedField(source='product', slug_field='slug', read_only=True)
     color = serializers.SlugRelatedField(source='product_color', slug_field='slug', read_only=True)
     size = serializers.SlugRelatedField(source='product_size', slug_field='name', read_only=True)
 
     class Meta:
         model = ProductDetails
-        fields = ('product', 'color', 'size')
+        fields = ('slug', 'color', 'size')
 
 
 class ManufacturerSerializer(serializers.ModelSerializer):
@@ -172,11 +165,11 @@ class CouponSerializer(serializers.ModelSerializer):
 
 
 class OrderDetailsSerializer(serializers.ModelSerializer):
-    product_details = ProductDetailsSerializer()
+    product = ProductDetailsSerializer(source='product_details')
 
     class Meta:
         model = OrderDetails
-        fields = ('product_details', 'unit_price', 'quantity', 'discount')
+        fields = ('product', 'unit_price', 'quantity', 'discount')
 
 
 class OrderSerializer(serializers.ModelSerializer):  # TODO: add an opportunity to add and update orders
@@ -186,7 +179,7 @@ class OrderSerializer(serializers.ModelSerializer):  # TODO: add an opportunity 
 
     class Meta:
         model = Order
-        fields = ('id', 'user', 'point', 'deliverer', 'address', 'delivery_date', 'order_details', 'delivery_price', 'total_price', 'is_sent')
+        fields = ('id', 'user', 'point', 'deliverer', 'user_address', 'delivery_date', 'order_details', 'delivery_price', 'total_price', 'is_sent')
         read_only_fields = ('id', 'delivery_date', 'delivery_price', 'total_price', 'is_sent')
 
 
@@ -202,20 +195,3 @@ class PointSerializer(serializers.ModelSerializer):
         model = Point
         fields = ('phone', 'address', 'location')
         read_only_fields = fields
-
-
-class UserSerializer(serializers.ModelSerializer):  # TODO: add an opportunity to change user profile info
-    class Meta:
-        model = User
-        fields = ('date_joined', 'username', 'profile_photo', 'country')
-        read_only_fields = fields
-
-
-class UserAddressSerializer(serializers.ModelSerializer):
-    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    username = serializers.SlugRelatedField(source='user', slug_field='username', read_only=True)
-
-    class Meta:
-        model = UserAddress
-        fields = ('created_at', 'user', 'username', 'address')
-        read_only_fields = ('created_at', )

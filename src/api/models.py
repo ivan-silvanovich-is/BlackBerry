@@ -1,8 +1,9 @@
 from math import ceil
 
 from django.db import models
-from config.models import TimeStampMixin, GENDER_CHOICES
 
+from config.models import TimeStampMixin, GENDER_CHOICES
+from user.models import *
 
 __all__ = (
     'Category',
@@ -28,7 +29,7 @@ __all__ = (
 
 class Category(TimeStampMixin):
     name = models.CharField(max_length=50, unique=True, verbose_name='Название')
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, verbose_name='Слаг')
     logo = models.CharField(max_length=100, unique=True, verbose_name='Лого')
 
     parent_category = models.ForeignKey(
@@ -57,7 +58,7 @@ class Product(TimeStampMixin):
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, verbose_name='Пол')
     is_new = models.BooleanField(default=True, verbose_name='Новинка')
     title = models.CharField(max_length=100, unique=True, verbose_name='Название')
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, verbose_name='Слаг')
     description = models.TextField(verbose_name='Описание')
     price = models.IntegerField(verbose_name='Цена')
     discount = models.IntegerField(default=0, verbose_name='Скидка %')
@@ -87,7 +88,7 @@ class ProductDetails(TimeStampMixin):
     product_color = models.ForeignKey('ProductColor', on_delete=models.PROTECT, verbose_name='Цвет товара')
     product_size = models.ForeignKey('ProductSize', on_delete=models.PROTECT, verbose_name='Размер товара')
 
-    stored = models.IntegerField(default=0, verbose_name='Количество')
+    quantity = models.IntegerField(default=0, verbose_name='Количество')
 
     def __str__(self):
         return f"{self.product.title} {self.product_color.slug} {self.product_size.name}"
@@ -102,7 +103,7 @@ class ProductDetails(TimeStampMixin):
 
 class Manufacturer(TimeStampMixin):
     name = models.CharField(max_length=50, unique=True, verbose_name='Название')
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, verbose_name='Слаг')
     logo = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name='Логотип')
     description = models.CharField(max_length=200, null=True, blank=True, verbose_name='Описание')
     country = models.CharField(max_length=50, verbose_name='Страна')
@@ -132,7 +133,7 @@ class ProductSize(models.Model):
 
 class ProductColor(models.Model):
     name = models.CharField(max_length=20, unique=True, verbose_name='Название')
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, verbose_name='Слаг')
     hex = models.CharField(max_length=7, verbose_name='Код')  # the length is fitted
 
     def __str__(self):
@@ -146,7 +147,7 @@ class ProductColor(models.Model):
 
 class ProductMaterial(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name='Название')
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, verbose_name='Слаг')
 
     products = models.ManyToManyField(
         'Product',
@@ -193,12 +194,12 @@ class ProductImage(TimeStampMixin):
     class Meta:
         verbose_name_plural = 'Фотографии товаров'
         verbose_name = 'Фотография товара'
-        ordering = ['-product']
+        ordering = ['-product', 'product_color']
         get_latest_by = '-created_at'
 
 
 class Review(TimeStampMixin):
-    user = models.ForeignKey('user.User', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Пользователь')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Пользователь')
     product = models.ForeignKey('Product', on_delete=models.CASCADE, verbose_name='товар')
 
     rating = models.IntegerField(verbose_name='Оценка')
@@ -211,7 +212,7 @@ class Review(TimeStampMixin):
         verbose_name_plural = 'Отзывы'
         verbose_name = 'Отзыв'
         unique_together = (('user', 'product'), )
-        ordering = ['-product']
+        ordering = ['-product', '-created_at']
         get_latest_by = '-created_at'
         constraints = (
             models.CheckConstraint(
@@ -222,11 +223,11 @@ class Review(TimeStampMixin):
 
 
 class Coupon(TimeStampMixin):
-    user = models.ForeignKey('user.User', on_delete=models.CASCADE, null=True, blank=True, verbose_name='Пользователь')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Пользователь')
 
     is_active = models.BooleanField(default=False, verbose_name='Активный')  # Coupon isn't active after creating
     name = models.CharField(max_length=20, unique=True, verbose_name='Название')
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, verbose_name='Слаг')
     discount = models.IntegerField(verbose_name='Скидка %')
     valid_until = models.DateTimeField(verbose_name='Действителен до')
     use_limit = models.IntegerField(null=True, blank=True, verbose_name='Лимит использований')
@@ -254,11 +255,15 @@ class Coupon(TimeStampMixin):
                 name='%(app_label)s_%(class)s_used_amount_greater_then_0_or_equal',
                 check=models.Q(used_amount__gte=0)
             ),
+            models.CheckConstraint(
+                name='%(app_label)s_%(class)s_used_amount_less_then_use_limit_or_equal',
+                check=(models.Q(use_limit__isnull=True) | models.Q(use_limit__gte=models.F("used_amount")))
+            ),
         )
 
 
 class Order(TimeStampMixin):
-    user = models.ForeignKey('user.User', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Пользователь')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Пользователь')
     point = models.ForeignKey('Point', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Точка')
     deliverer = models.ForeignKey(
         'Deliverer',
@@ -266,6 +271,13 @@ class Order(TimeStampMixin):
         null=True,
         blank=True,
         verbose_name='Доставщик'
+    )
+    user_address = models.ForeignKey(
+        UserAddress,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Адрес доставки'
     )
 
     @property
@@ -279,7 +291,6 @@ class Order(TimeStampMixin):
 
     delivery_date = models.DateTimeField(default=None, null=True, blank=True, verbose_name='Дата доставки')
     delivery_price = models.IntegerField(default=0, verbose_name='Цена доставки')
-    address = models.CharField(max_length=255, null=True, blank=True, verbose_name='Адрес')
     is_sent = models.BooleanField(default=False, verbose_name='Отправлено')
 
     def __str__(self):
@@ -294,8 +305,8 @@ class Order(TimeStampMixin):
             models.CheckConstraint(
                 name="%(app_label)s_%(class)s_deliverer_and_address_or_point",
                 check=(
-                        models.Q(deliverer__isnull=False, address__isnull=False, point__isnull=True)
-                        | models.Q(deliverer__isnull=True, address__isnull=True, point__isnull=False)
+                        models.Q(deliverer__isnull=False, user_address__isnull=False, point__isnull=True)
+                        | models.Q(deliverer__isnull=True, user_address__isnull=True, point__isnull=False)
                 )
             ),
             models.CheckConstraint(
@@ -346,7 +357,7 @@ class OrderDetails(models.Model):
 
 class Deliverer(TimeStampMixin):
     name = models.CharField(max_length=50, unique=True, verbose_name='Название')
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, verbose_name='Слаг')
     phone = models.CharField(max_length=15, unique=True, verbose_name='Телефон')  # the length is fitted
     delivery_price = models.IntegerField(verbose_name='Цена доставки')
 
@@ -363,7 +374,7 @@ class Deliverer(TimeStampMixin):
 class Point(TimeStampMixin):
     phone = models.CharField(max_length=15, unique=True, verbose_name='Телефон')  # the length is fitted
     address = models.CharField(max_length=255, verbose_name='Адрес')
-    location = models.CharField(max_length=22, verbose_name='Местоположение')  # # the length is fitted (without spaces)
+    location = models.CharField(max_length=22, verbose_name='Местоположение')  # the length is fitted (without spaces)
 
     def __str__(self):
         return self.address

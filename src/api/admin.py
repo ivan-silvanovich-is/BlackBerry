@@ -26,7 +26,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(ProductDetails)
 class ProductDetailsAdmin(admin.ModelAdmin):
-    list_display = ('product', 'product_color', 'product_size', 'stored')
+    list_display = ('product', 'product_color', 'product_size', 'quantity')
     list_display_links = ('product',)
     search_fields = ('product',)
 
@@ -85,9 +85,9 @@ class CouponAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('user', 'deliverer', 'point', 'total_price', 'created_at', 'delivery_date', 'address', 'is_sent')
+    list_display = ('user', 'deliverer', 'point', 'total_price', 'created_at', 'delivery_date', 'user_address', 'is_sent')
     list_display_links = ('user',)
-    search_fields = ('user__email', 'deliverer__name', 'point__address', 'address')
+    search_fields = ('user__email', 'deliverer__name', 'point__address', 'user_address')
 
 
 @admin.register(OrderDetails)

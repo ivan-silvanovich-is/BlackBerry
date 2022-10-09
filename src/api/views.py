@@ -1,14 +1,14 @@
-from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
+from config.permissions import IsOwner, IsOwnerOrReadOnly, IsStaffOrReadOnly
 from .filters import *
 from .models import *
-from .permissions import IsOwner, IsOwnerOrReadOnly
-from .serializers import *
-from user.models import User, UserAddress
+from .serializers.staff_serializers import *
+from .serializers.user_serializers import *
 
 __all__ = (
     'CategoryViewSet',
@@ -23,8 +23,6 @@ __all__ = (
     'OrderViewSet',
     'DelivererViewSet',
     'PointViewSet',
-    'UserViewSet',
-    'UserAddressViewSet',
 )
 
 
@@ -38,17 +36,26 @@ class CategoryViewSet(ReadOnlyModelViewSet):
     lookup_field = "slug"
 
 
-class ProductViewSet(ReadOnlyModelViewSet):
+class ProductViewSet(ModelViewSet):
     queryset = Product.objects.prefetch_related('images').all()
-    serializer_class = ProductItemSerializer
+    permission_classes = (IsStaffOrReadOnly, )
     filterset_class = ProductFilter
     lookup_field = 'slug'
 
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            self.filterset_class = StaffProductFilter
+        return self.filterset_class(self.request.GET, queryset=self.queryset).qs
+
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.request.user.is_staff and self.action == 'list':
+            return StaffProductListSerializer
+        elif self.request.user.is_staff:
+            return StaffProductItemSerializer
+        elif self.action == 'list':
             return ProductListSerializer
         else:
-            return self.serializer_class
+            return ProductItemSerializer
 
 
 class ManufacturerViewSet(ReadOnlyModelViewSet):
@@ -143,21 +150,3 @@ class DelivererViewSet(ReadOnlyModelViewSet):
 class PointViewSet(ReadOnlyModelViewSet):
     queryset = Point.objects.all()
     serializer_class = PointSerializer
-
-
-class UserViewSet(ReadOnlyModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    lookup_field = 'username'
-
-
-class UserAddressViewSet(ModelViewSet):
-    queryset = UserAddress.objects.all()
-    serializer_class = UserAddressSerializer
-    permission_classes = (IsOwner, )
-
-    def get_queryset(self):
-        if self.action == 'list':
-            return self.queryset.filter(user=self.request.user.id)
-        else:
-            return self.queryset
