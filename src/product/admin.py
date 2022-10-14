@@ -26,7 +26,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(ProductDetails)
 class ProductDetailsAdmin(admin.ModelAdmin):
-    list_display = ('product', 'product_color', 'product_size', 'quantity')
+    list_display = ('product', 'color', 'size', 'quantity')
     list_display_links = ('product',)
     search_fields = ('product',)
 
@@ -54,9 +54,9 @@ class MaterialAdmin(admin.ModelAdmin):
 
 @admin.register(Image)
 class ImageAdmin(admin.ModelAdmin):
-    list_display = ('name', 'product', 'product_color')
+    list_display = ('name', 'product', 'color')
     list_display_links = ('name',)
-    search_fields = ('name', 'product__title', 'product_color__name')
+    search_fields = ('name', 'product__title', 'color__name')
 
 
 @admin.register(Review)
@@ -83,11 +83,11 @@ class CouponAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name', )}
 
 
-@admin.register(MaterialProduct)
-class MaterialProductAdmin(admin.ModelAdmin):
-    list_display = ('product_material', 'product', 'part')
-    list_display_links = ('product_material', 'product')
-    search_fields = ('product_material__name', 'product__title')
+@admin.register(ProductMaterial)
+class ProductMaterialAdmin(admin.ModelAdmin):
+    list_display = ('material', 'product', 'part')
+    list_display_links = ('material', 'product')
+    search_fields = ('material__name', 'product__title')
 
 
 admin.site.register(Size)

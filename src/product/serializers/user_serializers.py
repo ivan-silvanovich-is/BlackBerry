@@ -5,12 +5,11 @@ from ..models import *
 
 __all__ = (
     'CategorySerializer',
-    # 'ProductSerializer',
     'ProductListSerializer',
     'ProductItemSerializer',
     'ManufacturerSerializer',
     'MaterialSerializer',
-    'MaterialProductSerializer',
+    'ProductMaterialSerializer',
     'ColorSerializer',
     'SizeSerializer',
     'ImageSerializer',
@@ -45,7 +44,7 @@ class ProductListSerializer(serializers.ModelSerializer):  # TODO: find better w
     images = serializers.SerializerMethodField(method_name='get_images')
 
     def get_images(self, product):
-        return product.images.filter(product_color=product.default_color).values('name')
+        return product.images.filter(color=product.default_color).values('name')
 
     class Meta:
         model = Product
@@ -61,13 +60,13 @@ class ProductItemSerializer(serializers.ModelSerializer):
         product_variations = ProductDetails.objects.filter(product=product)
         product_details = []
 
-        for color_id in product_variations.values_list('product_color', flat=True).distinct():
+        for color_id in product_variations.values_list('color', flat=True).distinct():
             color_info = model_to_dict(Color.objects.get(pk=color_id))
             color_info['sizes'] = [
                 {
-                    'size': obj.product_size.name,
+                    'size': obj.size.name,
                     'is_stored': bool(obj.quantity),
-                } for obj in product_variations.filter(product_color_id=color_id)
+                } for obj in product_variations.filter(color_id=color_id)
             ]
 
             product_details.append(color_info)
@@ -82,8 +81,8 @@ class ProductItemSerializer(serializers.ModelSerializer):
 
 class ProductDetailsSerializer(serializers.ModelSerializer):
     slug = serializers.SlugRelatedField(source='product', slug_field='slug', read_only=True)
-    color = serializers.SlugRelatedField(source='product_color', slug_field='slug', read_only=True)
-    size = serializers.SlugRelatedField(source='product_size', slug_field='name', read_only=True)
+    color = serializers.SlugRelatedField(slug_field='slug', read_only=True)
+    size = serializers.SlugRelatedField(slug_field='name', read_only=True)
 
     class Meta:
         model = ProductDetails
@@ -104,12 +103,12 @@ class MaterialSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class MaterialProductSerializer(serializers.ModelSerializer):
+class ProductMaterialSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(slug_field='slug', read_only=True)
-    material = MaterialSerializer(source="product_material")
+    material = serializers.SlugRelatedField(slug_field='slug', read_only=True)
 
     class Meta:
-        model = MaterialProduct
+        model = ProductMaterial
         fields = ('product', 'material', 'part')
         read_only_fields = fields
 
@@ -129,7 +128,7 @@ class SizeSerializer(serializers.ModelSerializer):
 
 class ImageSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(slug_field='slug', read_only=True)
-    color = serializers.SlugRelatedField(source='product_color', slug_field='slug', read_only=True)
+    color = serializers.SlugRelatedField(slug_field='slug', read_only=True)
 
     class Meta:
         model = Image
@@ -150,9 +149,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class CouponSerializer(serializers.ModelSerializer):
     categories = serializers.SlugRelatedField(
+        slug_field='slug',
         many=True,
         read_only=True,
-        slug_field='slug'
     )
 
     class Meta:

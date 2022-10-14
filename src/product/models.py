@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from config.models import TimeStampMixin, GENDER_CHOICES
@@ -8,7 +9,7 @@ __all__ = (
     'Product',
     'ProductDetails',
     'Material',
-    'MaterialProduct',
+    'ProductMaterial',
     'Size',
     'Color',
     'Image',
@@ -28,7 +29,7 @@ class Category(TimeStampMixin):
 
     parent_category = models.ForeignKey(
         'Category',
-        related_name="child_categories",
+        related_name='child_categories',
         on_delete=models.PROTECT,
         null=True,
         blank=True,
@@ -55,7 +56,11 @@ class Product(TimeStampMixin):
     slug = models.SlugField(unique=True, verbose_name='Слаг')
     description = models.TextField(verbose_name='Описание')
     price = models.IntegerField(verbose_name='Цена')
-    discount = models.IntegerField(default=0, verbose_name='Скидка %')
+    discount = models.IntegerField(
+        default=0,
+        verbose_name='Скидка %',
+        validators=(MinValueValidator(0), MaxValueValidator(99))
+    )
 
     def __str__(self):
         return self.title
@@ -77,22 +82,28 @@ class ProductDetails(TimeStampMixin):
         'Product',
         on_delete=models.CASCADE,
         verbose_name='Название товара',
-        related_name="details"
+        related_name='details'
     )
-    product_color = models.ForeignKey('Color', on_delete=models.PROTECT, verbose_name='Цвет товара')
-    product_size = models.ForeignKey('Size', on_delete=models.PROTECT, verbose_name='Размер товара')
+    color = models.ForeignKey('Color', on_delete=models.PROTECT, verbose_name='Цвет товара')
+    size = models.ForeignKey('Size', on_delete=models.PROTECT, verbose_name='Размер товара')
 
-    quantity = models.IntegerField(default=0, verbose_name='Количество')
+    quantity = models.IntegerField(default=0, verbose_name='Количество', validators=(MinValueValidator(0),))
 
     def __str__(self):
-        return f"{self.product.title} {self.product_color.slug} {self.product_size.name}"
+        return f'{self.product.title} {self.color.slug} {self.size.name}'
 
     class Meta:
         verbose_name_plural = 'Детали товаров'
         verbose_name = 'Детали товара'
-        unique_together = ['product', 'product_color', 'product_size']
+        unique_together = ['product', 'color', 'size']
         ordering = ['-product']
         get_latest_by = '-created_at'
+        constraints = (
+            models.CheckConstraint(
+                name='%(app_label)s_%(class)s_quantity_greater_then_0_or_equal',
+                check=models.Q(quantity__gte=0),
+            ),
+        )
 
 
 class Manufacturer(TimeStampMixin):
@@ -128,7 +139,7 @@ class Size(models.Model):
 class Color(models.Model):
     name = models.CharField(max_length=20, unique=True, verbose_name='Название')
     slug = models.SlugField(unique=True, verbose_name='Слаг')
-    hex = models.CharField(max_length=7, verbose_name='Код')  # the length is fitted
+    hex = models.CharField(max_length=7, unique=True, verbose_name='Код')  # the length is fitted
 
     def __str__(self):
         return self.name
@@ -145,9 +156,9 @@ class Material(models.Model):
 
     products = models.ManyToManyField(
         'Product',
-        through='MaterialProduct',
+        through='ProductMaterial',
         related_name='materials',
-        through_fields=('product_material', 'product'),
+        through_fields=('material', 'product'),
         verbose_name='Товары'
     )
 
@@ -160,14 +171,18 @@ class Material(models.Model):
         ordering = ['name']
 
 
-class MaterialProduct(models.Model):  # adjacent table for many-to-many relationship (Material, Product)
+class ProductMaterial(models.Model):  # adjacent table for many-to-many relationship (Material, Product)
     product = models.ForeignKey('Product', on_delete=models.CASCADE, verbose_name='Товар')
-    product_material = models.ForeignKey('Material', on_delete=models.PROTECT, verbose_name='Материал')
+    material = models.ForeignKey('Material', on_delete=models.PROTECT, verbose_name='Материал')
 
-    part = models.IntegerField(default=100, verbose_name='Содержание %')
+    part = models.IntegerField(
+        default=100,
+        verbose_name='Содержание %',
+        validators=(MinValueValidator(0), MaxValueValidator(100)),
+    )
 
     class Meta:
-        unique_together = (('product_material', 'product'), )
+        unique_together = (('material', 'product'),)
         constraints = (
             models.CheckConstraint(
                 name='%(app_label)s_%(class)s_part_between_1_and_100',
@@ -184,7 +199,7 @@ class Image(TimeStampMixin):
         related_name='images',
         verbose_name='товар',
     )
-    product_color = models.ForeignKey('Color', on_delete=models.PROTECT, verbose_name='Цвет')
+    color = models.ForeignKey('Color', on_delete=models.PROTECT, verbose_name='Цвет')
 
     name = models.CharField(max_length=100, unique=True, verbose_name='Название')
 
@@ -194,7 +209,7 @@ class Image(TimeStampMixin):
     class Meta:
         verbose_name_plural = 'Фотографии товаров'
         verbose_name = 'Фотография товара'
-        ordering = ['-product', 'product_color']
+        ordering = ['-product', 'color']
         get_latest_by = '-created_at'
 
 
@@ -202,7 +217,7 @@ class Review(TimeStampMixin):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Пользователь')
     product = models.ForeignKey('Product', on_delete=models.CASCADE, verbose_name='товар')
 
-    rating = models.IntegerField(verbose_name='Оценка')
+    rating = models.IntegerField(verbose_name='Оценка', validators=(MinValueValidator(0), MaxValueValidator(10)), )
     text = models.TextField(max_length=1000, verbose_name='Текст')  # the length is fitted
 
     def __str__(self):
@@ -211,7 +226,7 @@ class Review(TimeStampMixin):
     class Meta:
         verbose_name_plural = 'Отзывы'
         verbose_name = 'Отзыв'
-        unique_together = (('user', 'product'), )
+        unique_together = (('user', 'product'),)
         ordering = ['-product', '-created_at']
         get_latest_by = '-created_at'
         constraints = (
@@ -228,10 +243,20 @@ class Coupon(TimeStampMixin):
     is_active = models.BooleanField(default=False, verbose_name='Активный')  # Coupon isn't active after creating
     name = models.CharField(max_length=20, unique=True, verbose_name='Название')
     slug = models.SlugField(unique=True, verbose_name='Слаг')
-    discount = models.IntegerField(verbose_name='Скидка %')
-    valid_until = models.DateTimeField(verbose_name='Действителен до')
-    use_limit = models.IntegerField(null=True, blank=True, verbose_name='Лимит использований')
-    used_amount = models.IntegerField(default=0, verbose_name='Количество использований')
+    discount = models.IntegerField(verbose_name='Скидка %', validators=(MinValueValidator(0), MaxValueValidator(99)),)
+    valid_until = models.DateTimeField(verbose_name='Дата истечения')
+    use_limit = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name='Лимит использований',
+        validators=(MinValueValidator(1),),
+    )
+    used_amount = models.IntegerField(
+        default=0,
+        verbose_name='Количество использований',
+        validators=(MinValueValidator(0),),
+    )
+
     categories = models.ManyToManyField('Category', verbose_name='Категории')
 
     def __str__(self):
@@ -257,6 +282,6 @@ class Coupon(TimeStampMixin):
             ),
             models.CheckConstraint(
                 name='%(app_label)s_%(class)s_used_amount_less_then_use_limit_or_equal',
-                check=(models.Q(use_limit__isnull=True) | models.Q(use_limit__gte=models.F("used_amount")))
+                check=(models.Q(use_limit__isnull=True) | models.Q(use_limit__gte=models.F('used_amount')))
             ),
         )

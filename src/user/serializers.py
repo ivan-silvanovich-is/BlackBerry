@@ -16,5 +16,5 @@ class UserAddressSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserAddress
-        fields = ('created_at', 'user', 'username', 'county', 'region', 'city', 'street', 'house', 'apartment', 'location')
+        fields = ('created_at', 'user', 'username', 'country', 'region', 'city', 'street', 'house', 'apartment', 'location')
         read_only_fields = ('created_at', )

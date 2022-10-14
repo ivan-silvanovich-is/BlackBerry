@@ -3,26 +3,17 @@ from django_filters import rest_framework as filters
 
 from config.models import GENDER_CHOICES
 from user.models import User
-from .models import *
+from product.models import *
 
 
 __all__ = (
     'CategoryFilter',
     'ProductFilter',
-    'StaffProductFilter',
-    'MaterialFilter',
+    'ProductMaterialFilter',
     'ManufacturerFilter',
     'ImageFilter',
     'ReviewFilter',
 )
-
-
-class TimeStampFilter(filters.FilterSet):
-    created_at = filters.DateFromToRangeFilter()
-    updated_at = filters.DateFromToRangeFilter()
-
-    class Meta:
-        fields = ('created_at', 'updated_at')
 
 
 class CategoryFilter(filters.FilterSet):
@@ -44,23 +35,31 @@ class CategoryFilter(filters.FilterSet):
 
 class ProductFilter(filters.FilterSet):
     price = filters.RangeFilter()
-    manufacturer = filters.CharFilter(field_name="manufacturer__slug", lookup_expr="exact")
-    category = filters.CharFilter(field_name="category__slug", lookup_expr="exact")
     gender = filters.ChoiceFilter(choices=GENDER_CHOICES)
 
+    category = filters.ModelMultipleChoiceFilter(
+        field_name='category__slug',
+        to_field_name='slug',
+        queryset=Category.objects.all()
+    )
+    manufacturer = filters.ModelMultipleChoiceFilter(
+        field_name='manufacturer__slug',
+        to_field_name='slug',
+        queryset=Manufacturer.objects.all()
+    )
     material = filters.ModelMultipleChoiceFilter(
-        field_name="materials__slug",
-        to_field_name="slug",
+        field_name='materials__slug',
+        to_field_name='slug',
         queryset=Material.objects.all()
     )
     color = filters.ModelMultipleChoiceFilter(
-        field_name="details__product_color__slug",
-        to_field_name="slug",
+        field_name='details__color__slug',
+        to_field_name='slug',
         queryset=Color.objects.all()
     )
     size = filters.ModelMultipleChoiceFilter(
-        field_name="details__product_size__name",
-        to_field_name="name",
+        field_name='details__size__name',
+        to_field_name='name',
         queryset=Size.objects.all()
     )
 
@@ -87,37 +86,33 @@ class ProductFilter(filters.FilterSet):
 
     class Meta:
         model = Product
-        fields = ('search', 'price', 'manufacturer', 'category', 'gender', 'material', 'color', 'size')
-
-
-class StaffProductFilter(ProductFilter, TimeStampFilter):
-    pass
+        fields = ('search', 'price', 'gender', 'manufacturer', 'category', 'material', 'color', 'size')
 
 
 class ManufacturerFilter(filters.FilterSet):
-    country = filters.AllValuesMultipleFilter(field_name="country", label="Страна")
+    country = filters.CharFilter(lookup_expr='contains')
 
     class Meta:
         model = Manufacturer
         fields = ('country', )
 
 
-class MaterialFilter(filters.FilterSet):
+class ProductMaterialFilter(filters.FilterSet):
     material = filters.ModelMultipleChoiceFilter(
-        field_name="product_material__slug",
-        to_field_name="slug",
+        field_name='material__slug',
+        to_field_name='slug',
         queryset=Material.objects.all()
     )
     product = filters.ModelMultipleChoiceFilter(
-        field_name="product__slug",
-        to_field_name="slug",
+        field_name='product__slug',
+        to_field_name='slug',
         queryset=Product.objects.all()
     )
-    part = filters.RangeFilter(field_name="part")
+    part = filters.RangeFilter(field_name='part')
 
     class Meta:
-        model = MaterialProduct
-        fields = ("material", "product", "part")
+        model = ProductMaterial
+        fields = ('material', 'product', 'part')
 
 
 class ImageFilter(filters.FilterSet):
@@ -127,7 +122,7 @@ class ImageFilter(filters.FilterSet):
         queryset=Product.objects.all()
     )
     color = filters.ModelMultipleChoiceFilter(
-        field_name='product_color__slug',
+        field_name='color__slug',
         to_field_name='slug',
         queryset=Color.objects.all()
     )
@@ -139,15 +134,17 @@ class ImageFilter(filters.FilterSet):
 
 class ReviewFilter(filters.FilterSet):
     user = filters.ModelMultipleChoiceFilter(
-        field_name="user__username",
-        to_field_name="username",
+        field_name='user__username',
+        to_field_name='username',
         queryset=User.objects.all()
     )
     product = filters.ModelMultipleChoiceFilter(
-        field_name="product__slug",
-        to_field_name="slug",
+        field_name='product__slug',
+        to_field_name='slug',
         queryset=Product.objects.all()
     )
+
+    rating = filters.NumberFilter()
 
     class Meta:
         model = Review

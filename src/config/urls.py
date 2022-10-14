@@ -17,22 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from .routers import DefaultRouter
-from order.urls import router as order_router
-from product.urls import router as product_router
-from user.urls import router as user_router
-
-
-router = DefaultRouter()
-router.extend(order_router)
-router.extend(product_router)
-router.extend(user_router)
 
 api_prefix = 'api/v1/'
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path(api_prefix + 'auth/', include('djoser.urls')),
-    path(api_prefix + 'auth/', include('djoser.urls.authtoken')),
-    path(api_prefix + 'auth/', include('rest_framework.urls')),
-    path(api_prefix, include(router.urls)),
+    path(api_prefix + 'auth/drf/', include(('rest_framework.urls', 'rest_framework'))),
+    path(api_prefix + 'auth/', include(('djoser.urls', 'djoser'))),
+    path(api_prefix + 'auth/', include(('djoser.urls.authtoken', 'djoser.urls.authtoken'))),
+    path(api_prefix + 'order/', include(('order.urls', 'order'))),
+    path(api_prefix + 'product/', include(('product.urls', 'product'))),
+    path(api_prefix + 'user/', include(('user.urls', 'user'))),
 ]
