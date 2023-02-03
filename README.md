@@ -1,71 +1,56 @@
 # BlackBerry: Clothing store
 
-This is an api for clothing store created with [Django](http://www.djangoproject.com) and [Django REST](https://www.django-rest-framework.org/) that you can use to handle backend functional for internet shop.
+This is an api for a clothing store created with [Django](http://www.djangoproject.com) and [Django REST](https://www.django-rest-framework.org/) that you can use to handle backend functional for the internet shop.
 
-**NOTE:** This version was tested with Python 3.9, Django 4.1, DRF 3.13, PostgreSQL 13.4. And works only with **postgress** database currently.
+**NOTE:** This version was tested with Python 3.9, Django 4.1, DRF 3.13, PostgreSQL 15.1. And works only with **postgress** database currently.
 
 ## Quick demo
 
 ![alt text](https://drive.google.com/uc?export=view&id=1uRjtzZDl64S5uqzLtShyt1hDmKIX99AI "main")
 
-![alt text](https://drive.google.com/uc?export=view&id=138jk7M8LszvfuTUdLjVhAhZDFJT4tkeK "products")
+![alt text](https://drive.google.com/uc?export=view&id=1vSMFiiZit2JqDqeoypSg-8Nd-bzbqlI8 "products")
 
 ## Installing
 
-To get this project up and running you should start by having Python installed on your computer. It's advised you create a virtual environment to store your projects dependencies separately. You can install virtualenv with
+To get this project up and running you should install [Docker](https://www.docker.com/products/docker-desktop/). Make sure you have Docker on your OS before you move on to the next step.
+
+
+In the case you have Docker your next step is to configure a `.env` file and provide vital settings. Except for db settings, there are another important settings, like `SECRET_KEY`, email settings, etc., provide them too. You can find an example of `.env` file in `.env.example` file:
 
 ```
-pip install virtualenv
-```
+# api prefix
+API_PREFIX = api/v1/                     the prefix that each api prefix begins with
 
-Clone or download this repository and open it in your editor of choice. In a terminal (mac/linux) or windows terminal, run the following command in the base directory of this project
-
-```
-virtualenv venv
-```
-
-That will create a new folder `venv` in your project directory. Next activate it with this command:
-
-**mac/linux:** `source venv/bin/active`
-
-**windows:** `venv\Scripts\active`
-
-Install the project dependencies with
-
-```
-pip install -r requirements.txt
-```
-
-Your next step - connect a database. After installing PostgreSQL, configure your `.env` file and provide vital settings. Except for db settings, there are another important settings, like `SECRET_KEY`, provide them too. You can find an example of `.env` file in `.env.example` file:
-
-```
 # vital app settings
-SECRET_KEY =        your secret key
-DEBUG =             debug mode (0 - False, 1 - True)
-ALLOWED_HOSTS =     allowed hosts (divided by spaces)
+SECRET_KEY = secret_key                  your secret key
+DEBUG = 1                                a debug mode (0 - False, 1 - True)
+ALLOWED_HOSTS = example.com localhost    allowed hosts (divided by spaces)
 
 # admin app settings
-LANGUAGE_CODE =     your language code in admin app ('en-us' for U.S. English)
-TIME_ZONE =         your time zone ('UTC' for UTC+0)
+LANGUAGE_CODE = en                       your language code in admin app ('en-us' for U.S. English)
+TIME_ZONE = Europe/London                your time zone ('UTC' for UTC+0)
 
 # database settings
-NAME =              name of database
-HOST =              your db host ('localhost' for example)
-PORT =              your db port ('5432' for example)
-USER =              username of database owner
-PASSWORD =          password of database owner
+DB_NAME = my_db                          the name of the database
+DB_HOST = 127.0.0.1                      your db host ('localhost' for example)
+DB_PORT = 5432                           your db port ('5432' for example)
+DB_USER = user                           username of database owner
+DB_PASSWORD = 1234                       password of database owner
+
+# email settings
+EMAIL_HOST = smtp.gmail.com              an email server which serves site's email address
+EMAIL_PORT = 587                         a port of the server
+EMAIL_USE_TLS = 1                        using of TLS preference (0 - False, 1 - True)
+EMAIL_HOST_USER = my.store@gmail.com     site's email address
+EMAIL_HOST_PASSWORD = tlclrhvmdowvdxxs   an email password
 ```
 
-Then fill you database with test data (fixtures). This command will install all fixtures from all apps:
+Preparations are almost done. The final step is to run Docker containers. Just type the next command in the project work directory:
 
 ```
-python manage.py loaddata fixtures.json
+docker-compose -f .\docker-compose.dev.yaml up -d
 ```
 
-Now you can run the project with this command
+If you want to start the project in a production mode, just use `docker-compose.yaml` instead of `docker-compose.dev.yaml` command.
 
-```
-python manage.py runserver
-```
-
-## Enjoy project 😁
+## Enjoy the project 😁
