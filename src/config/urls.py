@@ -13,26 +13,24 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+import os
 
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path, include
 
-from .routers import DefaultRouter
-from order.urls import router as order_router
-from product.urls import router as product_router
-from user.urls import router as user_router
 
+API_PREFIX = os.getenv('API_PREFIX')
 
-router = DefaultRouter()
-router.extend(order_router)
-router.extend(product_router)
-router.extend(user_router)
-
-api_prefix = 'api/v1/'
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path(api_prefix + 'auth/', include('djoser.urls')),
-    path(api_prefix + 'auth/', include('djoser.urls.authtoken')),
-    path(api_prefix + 'auth/', include('rest_framework.urls')),
-    path(api_prefix, include(router.urls)),
+    path(API_PREFIX + 'auth/basic/', include('rest_framework.urls')),
+    path(API_PREFIX + 'auth/', include('djoser.urls.authtoken')),
+    path(API_PREFIX + 'orders/', include(('orders.urls', 'orders'))),
+    path(API_PREFIX + 'products/', include(('products.urls', 'products'))),
+    path(API_PREFIX + 'users/', include(('users.urls', 'users'))),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

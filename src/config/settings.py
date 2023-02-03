@@ -49,9 +49,9 @@ INSTALLED_APPS = [
     'django_filters',
     'djoser',
 
-    'order.apps.OrderConfig',
-    'product.apps.ProductConfig',
-    'user.apps.UserConfig',
+    'orders.apps.OrdersConfig',
+    'products.apps.ProductsConfig',
+    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
@@ -136,7 +136,7 @@ USE_TZ = True
 
 
 # User model
-AUTH_USER_MODEL = 'user.User'
+AUTH_USER_MODEL = 'users.User'
 
 
 # Static files (CSS, JavaScript, Images)
@@ -144,24 +144,57 @@ AUTH_USER_MODEL = 'user.User'
 
 STATIC_URL = 'static/'
 
+MEDIA_ROOT = f'{BASE_DIR}/../media'
+MEDIA_URL = '/media/'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# django rest framework settings
 REST_FRAMEWORK = {
+    # 'EXCEPTION_HANDLER': 'config.views.forbidden_to_not_found_exception_handler',
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend'
+        'config.filters.CustomFilterBackend'
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 20,
 }
 
+# djoser settings
 DJOSER = {
-    'USER_CREATE_PASSWORD_RETYPE': True,
+    'USER_ID_FIELD': 'username',
+    'PASSWORD_RESET_CONFIRM_URL': 'auth/password-reset/{uid}/{token}',
+    'USERNAME_RESET_CONFIRM_URL': 'auth/username-reset/{uid}/{token}',
+    'ACTIVATION_URL': 'auth/activate/{uid}/{token}',
+    'SEND_ACTIVATION_EMAIL': True,
+    'SEND_CONFIRMATION_EMAIL': True,
+    'PASSWORD_CHANGED_EMAIL_CONFIRMATION': True,
+    'USERNAME_CHANGED_EMAIL_CONFIRMATION': True,
+    'LOGOUT_ON_PASSWORD_CHANGE': True,
+    'PERMISSIONS': {
+        'me': ['rest_framework.permissions.IsAuthenticated'],
+        'set_password': ['config.permissions.IsCurrentUserOrOneStepHigherOrReadOnly'],
+        'set_username': ['config.permissions.IsCurrentUserOrOneStepHigherOrReadOnly'],
+        'user_delete': ['config.permissions.IsCurrentUserOrOneStepHigherOrReadOnly'],
+        'user': ['config.permissions.IsCurrentUserOrOneStepHigherOrReadOnly'],
+        'user_list': ['config.permissions.IsCurrentUserOrOneStepHigherOrReadOnly'],
+    },
+    'SERIALIZERS': {
+        'user': 'users.serializers.user_serializers.PublicUserSerializer',
+        'current_user': 'users.serializers.user_serializers.PrivateUserSerializer',
+    },
 }
+
+# Email settings for sending messages
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = os.getenv('EMAIL_PORT')
+EMAIL_USE_TLS = int(os.getenv('EMAIL_USE_TLS'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
