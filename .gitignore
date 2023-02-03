@@ -7,7 +7,6 @@
 __pycache__
 db.sqlite3
 data
-make_fixtures.py
 media
 
 # Backup files #
@@ -37,9 +36,10 @@ media
 .idea/**/dbnavigator.xml
 
 # Python #
+make_fixtures.py
+source_code.py
 *.py[cod]
 *$py.class
-source_code.py
 
 # Distribution / packaging
 .Python build/

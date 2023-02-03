@@ -49,11 +49,11 @@ LANGUAGE_CODE =     your language code in admin app ('en-us' for U.S. English)
 TIME_ZONE =         your time zone ('UTC' for UTC+0)
 
 # database settings
-NAME =              name of database
-HOST =              your db host ('localhost' for example)
-PORT =              your db port ('5432' for example)
-USER =              username of database owner
-PASSWORD =          password of database owner
+DB_NAME =              name of database
+DB_HOST =              your db host ('localhost' for example)
+DB_PORT =              your db port ('5432' for example)
+DB_USER =              username of database owner
+DB_PASSWORD =          password of database owner
 ```
 
 Then fill you database with test data (fixtures). This command will install all fixtures from all apps:

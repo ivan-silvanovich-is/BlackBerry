@@ -1,0 +1,9 @@
+# folders
+media
+venv
+
+# filetypes
+.*
+Dockerfile*
+docker-compose*
+*.py
