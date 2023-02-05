@@ -51,6 +51,6 @@ Preparations are almost done. The final step is to run Docker containers. Just t
 docker-compose -f .\docker-compose.dev.yaml up -d
 ```
 
-If you want to start the project in a production mode, just use `docker-compose.yaml` instead of `docker-compose.dev.yaml` command.
+If you want to start the project in a production mode, just use `docker-compose.prod.yaml` instead of `docker-compose.dev.yaml` command.
 
 ## Enjoy the project 😁

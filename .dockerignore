@@ -7,3 +7,6 @@ venv
 Dockerfile*
 docker-compose*
 *.py
+
+#exceptions
+!manage.py
